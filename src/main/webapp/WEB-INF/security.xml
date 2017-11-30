@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans:beans xmlns='http://www.springframework.org/schema/security'
+             xmlns:beans='http://www.springframework.org/schema/beans'
+             xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+             xmlns:security="http://www.springframework.org/schema/security"
+             xsi:schemaLocation='http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                                 http://www.springframework.org/schema/security
+                                 http://www.springframework.org/schema/security/spring-security-3.2.xsd'>
+
+    <!--<beans:import resource='applicationContext-resources.xml'/>-->
+    <beans:import resource='dispatcher-servlet.xml'/>
+
+    <!--<security:global-method-security secured-annotations="enabled"/>-->
+    <security:global-method-security pre-post-annotations="enabled"/>
+
+    <security:http auto-config="true">
+        <intercept-url pattern="/comm/**/delete*" access="ROLE_ADMIN"/>
+        <intercept-url pattern="/comm/**/archive*" access="ROLE_ADMIN"/>
+        <intercept-url pattern="/comm/store/save*" access="ROLE_ADMIN, ROLE_SPACE_PLANNER"/>
+        <intercept-url pattern="/comm/floor/save*" access="ROLE_ADMIN, ROLE_SPACE_PLANNER"/>
+        <intercept-url pattern="/comm/request/*" access="ROLE_ADMIN, ROLE_SPACE_PLANNER"/>
+        <intercept-url pattern="/comm/floor/upload/*" access="ROLE_ADMIN, ROLE_SPACE_PLANNER"/>
+        <intercept-url pattern="/comm/floor/autocad/*" access="ROLE_ADMIN, ROLE_DESIGNER"/>
+        <intercept-url pattern="/comm/**/publish*" access="ROLE_ADMIN, ROLE_SPACE_PLANNER, ROLE_DESIGNER"/>
+        <intercept-url pattern="/comm/**/*" access="ROLE_ADMIN,ROLE_SPACE_PLANNER, ROLE_DESIGNER, ROLE_COMMERCIAL"/>
+        <intercept-url pattern="/user/password/change/*" access="ROLE_ADMIN,ROLE_SPACE_PLANNER, ROLE_DESIGNER, ROLE_COMMERCIAL"/>
+        <intercept-url pattern="/user/**/*" access="ROLE_ADMIN"/>
+        <!--<intercept-url pattern="/**/*" access="ROLE_ANONYMOUSE"/>-->
+        <form-login login-page='/login.html'
+                    authentication-failure-url='/login.html?error=true'
+                    authentication-failure-handler-ref="authenticationService" authentication-success-handler-ref="authenticationService"
+                    default-target-url="/comm/home.html"/>
+        <logout logout-success-url='/login.html' delete-cookies="true" logout-url="/j_spring_security_logout"/>
+    </security:http>
+    <security:authentication-manager>
+        <authentication-provider ref="authenticationProvider"/>
+    </security:authentication-manager>
+
+    <beans:bean id="authenticationProvider"
+                class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
+        <beans:property name="userDetailsService" ref="userBL"/>
+        <beans:property name="passwordEncoder" ref="passwordEncoder"/>
+        <!--<beans:property name="saltSource" ref="saltSource"/>-->
+    </beans:bean>
+
+    <beans:bean id="authenticationService" class="com.spaceplanner.java.security.Authentication">
+        <beans:property name="logoutUrl" value="j_spring_security_logout"/>
+    </beans:bean>
+    <beans:bean id="passwordEncoder" class="com.spaceplanner.java.security.PasswordEncoder"/>
+    <!--<beans:bean id="saltSource" class="org.springframework.security.authentication.dao.ReflectionSaltSource">
+        <beans:property name="userPropertyToUse" value="salt"/>
+    </beans:bean>-->
+
+    <beans:bean id="webSecurityExpressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler" />
+</beans:beans>
+    <!---->
