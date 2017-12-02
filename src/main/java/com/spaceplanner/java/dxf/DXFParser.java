@@ -1,4 +1,4 @@
-package com.spaceplanner.java.util;
+package com.spaceplanner.java.dxf;
 
 import com.spaceplanner.java.dto.DesignMText;
 import com.spaceplanner.java.dto.DesignPolyLine;
