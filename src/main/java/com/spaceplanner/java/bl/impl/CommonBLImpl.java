@@ -3,6 +3,7 @@ package com.spaceplanner.java.bl.impl;
 import com.spaceplanner.java.bl.CommonBL;
 import com.spaceplanner.java.dao.CommonDao;
 import com.spaceplanner.java.dao.UserDao;
+import com.spaceplanner.java.dto.DesignDetail;
 import com.spaceplanner.java.dto.DesignUploadForm;
 import com.spaceplanner.java.dto.FloorUploadForm;
 import com.spaceplanner.java.dto.SpaceMasterDTO;
@@ -241,22 +242,19 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
 
     private void processSpaceDesign(FloorEntity floorEntity, MultipartFile designDXFFile, SpacePlannerResponseStatus status) throws IOException, ParseException {
         logger.info("Processing space design...");
-        DesignParser designParser = new DesignParser(designDXFFile.getInputStream());
+        DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream());
+        List<DesignDetail> designDetails = designApi.getDesignDetails();
         List<FloorDesignDetailsEntity> floorDesignDetailList = new ArrayList<FloorDesignDetailsEntity>();
-        List<String> departmentList = designParser.getDepartments();
-        Map<String, Double> locationBrandArea = designParser.getLocationAreaMap();
-        Map<String, String> locationCategoryMap = designParser.getLocationCategoryMap();
         Map<String, CategoryDivision> categoryDivisionMap = commonDao.getCategoryDivision();
         double designRetailArea = 0.00;
-        for (String department : departmentList) {
+        for (DesignDetail designDetail : designDetails) {
             FloorDesignDetailsEntity floorDesignDetail = new FloorDesignDetailsEntity();
             floorDesignDetail.setFloor(floorEntity);
-            floorDesignDetail.setLocationCode(department);
-            floorDesignDetail.setDesignArea(locationBrandArea.get(floorDesignDetail.getLocationCode()));
-            String categoryName = locationCategoryMap.get(floorDesignDetail.getLocationCode());
+            floorDesignDetail.setLocationCode(designDetail.getLocation());
+            floorDesignDetail.setDesignArea(designDetail.getArea());
             boolean isNullOrInvalidCategory=false;
-            if(StringUtil.isNotNullOrEmpty(categoryName)){
-                categoryName =  categoryName.replaceAll("\\s","");
+            if(StringUtil.isNotNullOrEmpty(designDetail.getCategory())){
+                String categoryName =  designDetail.getCategory().replaceAll("\\s","");
                 CategoryDivision categoryDivision  =  categoryDivisionMap.get(categoryName.toLowerCase());
                 if(null!= categoryDivision){
                     floorDesignDetail.setCategory(categoryDivision.getCategory());
@@ -266,8 +264,8 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
                 }
             }
             if(isNullOrInvalidCategory){
-                logger.error(commonUtil.getText("error.null.or.invalid.category.name.for.location",department)+ "Category Name:- "+ categoryName);
-                status.addError(commonUtil.getText("error.null.or.invalid.category.name.for.location",department));
+                logger.error(commonUtil.getText("error.null.or.invalid.category.name",designDetail.getCategory()));
+                status.addError(commonUtil.getText("error.null.or.invalid.category.name",designDetail.getCategory()));
                 return;
             }
             if (null != floorDesignDetail.getDesignArea())
@@ -279,21 +277,26 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             commonDao.deleteFloorDetails(floorEntity.getId(), floorEntity.getVersion());
         }
         commonDao.saveAll(floorDesignDetailList);
-        floorEntity.setNoOfLocation(departmentList.size());
+        floorEntity.setNoOfLocation(designDetails.size());
         floorEntity.setDesignStatus(DesignStatus.Space_Design_Uploaded);
         floorEntity.setDesignArea(designRetailArea);
     }
 
     private void processBrandDesign(FloorEntity floorEntity, MultipartFile designDXFFile) throws IOException, ParseException {
-        DesignParser designParser = new DesignParser(designDXFFile.getInputStream());
-        Map<String, String> locationBrandNameMap = designParser.getLocationBrandMap();
-        //Map<String, String> locationCategoryMap = designParser.getLocationCategory();
+        DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream());
         List<FloorDesignDetailsEntity> floorDesignDetailList = commonDao.getFloorDesignDetails(floorEntity.getId());
-        //Map<String, BrandEntity> brandMap = convertBrandListIntoMap(commonDao.gerBrand());
+        Set<DesignDetail> processed = new HashSet<DesignDetail>();
         for (FloorDesignDetailsEntity floorDesignDetail : floorDesignDetailList) {
-            floorDesignDetail.setDesignBrandName(locationBrandNameMap.get(floorDesignDetail.getLocationCode()));
-            //floorDesignDetail.setCategory(locationCategoryMap.get(floorDesignDetail.getLocationCode()));
-            //floorDesignDetail.setBrand(brandMap.get(brandCodeName.getName()));
+            List<DesignDetail> designDetails = designApi.getCategoryDesignDetails(floorDesignDetail.getCategory());
+            if(null != designDetails && designDetails.size()>0){
+                for(DesignDetail designDetail : designDetails){
+                    if(!processed.contains(designDetail) && floorDesignDetail.getLocationCode().equals(designDetail.getLocation()) && floorDesignDetail.getDesignArea()== designDetail.getArea()){
+                        floorDesignDetail.setDesignBrandName(designDetail.getBrand());
+                        processed.add(designDetail);
+                    }
+                }
+            }
+            //floorDesignDetail.setDesignBrandName(locationBrandNameMap.get(floorDesignDetail.getLocationCode()));
         }
         commonDao.saveAll(floorDesignDetailList);
         floorEntity.setDesignStatus(DesignStatus.Brand_Design_Uploaded);

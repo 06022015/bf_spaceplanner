@@ -74,10 +74,12 @@ public class DesignPolyLine implements Comparator<DesignPolyLine> {
         int j= getPointList().size()-1;
         boolean valid=false;
         for (int i=0; i<getPointList().size(); i++) {
-            if (getPointList().get(i).getY()<p.getY() && getPointList().get(j).getY()>=p.getY()
-                    ||  getPointList().get(j).getY()<p.getY() && getPointList().get(i).getY()>=p.getY()) {
-                if (getPointList().get(i).getX()+(p.getY()-getPointList().get(i).getY())/(getPointList().get(j).getY()-getPointList().get(i).getY())*(getPointList().get(j).getX()-getPointList().get(i).getX())<p.getX()) {
-                    valid=!valid; }}
+            if (getPointList().get(i).getY()<=p.getY() && getPointList().get(j).getY()>=p.getY()
+                    ||  getPointList().get(j).getY()<=p.getY() && getPointList().get(i).getY()>=p.getY()) {
+                if (getPointList().get(i).getX()+(p.getY()-getPointList().get(i).getY())/(getPointList().get(j).getY()-getPointList().get(i).getY())*(getPointList().get(j).getX()-getPointList().get(i).getX())<=p.getX()) {
+                    valid=!valid;
+                }
+            }
             j=i;
         }
         return valid;

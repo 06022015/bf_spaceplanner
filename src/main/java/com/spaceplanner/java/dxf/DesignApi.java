@@ -17,4 +17,6 @@ public interface DesignApi {
     static String MTEXT = "MTEXT";
 
     List<DesignDetail> getDesignDetails();
+
+    List<DesignDetail> getCategoryDesignDetails(String category);
 }
