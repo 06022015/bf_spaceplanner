@@ -6,6 +6,7 @@ public class DesignDetail {
     private String category;
     private String location;
     private Double area;
+    private String lineId;
 
     public String getBrand() {
         return brand;
@@ -39,14 +40,25 @@ public class DesignDetail {
         this.area = area;
     }
 
+    public String getLineId() {
+        return lineId;
+    }
+
+    public void setLineId(String lineId) {
+        this.lineId = lineId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         DesignDetail that = (DesignDetail) o;
+
         if (brand != null ? !brand.equals(that.brand) : that.brand != null) return false;
         if (category != null ? !category.equals(that.category) : that.category != null) return false;
-        return location != null ? location.equals(that.location) : that.location == null;
+        if (location != null ? !location.equals(that.location) : that.location != null) return false;
+        return lineId != null ? lineId.equals(that.lineId) : that.lineId == null;
     }
 
     @Override
@@ -54,6 +66,7 @@ public class DesignDetail {
         int result = brand != null ? brand.hashCode() : 0;
         result = 31 * result + (category != null ? category.hashCode() : 0);
         result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + (lineId != null ? lineId.hashCode() : 0);
         return result;
     }
 
@@ -64,6 +77,7 @@ public class DesignDetail {
                 ", category='" + category + '\'' +
                 ", location='" + location + '\'' +
                 ", area=" + area +
+                ", lineId=" + lineId +
                 '}';
     }
 }

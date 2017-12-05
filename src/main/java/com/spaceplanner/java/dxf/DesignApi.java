@@ -19,4 +19,6 @@ public interface DesignApi {
     List<DesignDetail> getDesignDetails();
 
     List<DesignDetail> getCategoryDesignDetails(String category);
+
+    List<DesignDetail> getCategoryDesignDetails(String category, Double area);
 }

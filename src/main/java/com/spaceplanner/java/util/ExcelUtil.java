@@ -211,10 +211,106 @@ public class ExcelUtil implements Constants {
         }
         return null;
     }
-    
+
+    public static Map<String, List<SpaceMasterDTO>>  readAsCategoryArea(InputStream inputStream)throws IOException, NumberFormatException{
+        Map<String, List<SpaceMasterDTO>> catAreaMap = new HashMap<String, List<SpaceMasterDTO>>();
+        try{
+            XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+            XSSFSheet sheet = workbook.getSheetAt(0);
+            Map<String, Integer> columnIndexMap = readHeaderColumn(sheet);
+            Iterator<Row> rowIterator = sheet.iterator();
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                if (row.getRowNum() > sheet.getFirstRowNum()) {
+                    SpaceMasterDTO spaceMasterDTO = readRow(row, columnIndexMap);
+                    String key = spaceMasterDTO.getCategory()+"-"+spaceMasterDTO.getArea();
+                    List<SpaceMasterDTO> catAreaSpaceMasterDTOs = catAreaMap.get(key);
+                    if(null == catAreaSpaceMasterDTOs)
+                        catAreaSpaceMasterDTOs = new ArrayList<SpaceMasterDTO>();
+                    catAreaSpaceMasterDTOs.add(spaceMasterDTO);
+                    catAreaMap.put(key, catAreaSpaceMasterDTOs);
+                }
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != inputStream)
+                inputStream.close();
+        }
+        return catAreaMap;
+    }
+
+    public static Map<String, List<SpaceMasterDTO>>  readAsCategory(InputStream inputStream)throws IOException, NumberFormatException{
+        Map<String, List<SpaceMasterDTO>> catMap = new HashMap<String, List<SpaceMasterDTO>>();
+        try{
+            XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+            XSSFSheet sheet = workbook.getSheetAt(0);
+            Map<String, Integer> columnIndexMap = readHeaderColumn(sheet);
+            Iterator<Row> rowIterator = sheet.iterator();
+            while (rowIterator.hasNext()) {
+                Row row = rowIterator.next();
+                if (row.getRowNum() > sheet.getFirstRowNum()) {
+                    SpaceMasterDTO spaceMasterDTO = readRow(row, columnIndexMap);
+                    List<SpaceMasterDTO> catSpaceMasterDTOs = catMap.get(spaceMasterDTO.getCategory());
+                    if(null == catSpaceMasterDTOs)
+                        catSpaceMasterDTOs = new ArrayList<SpaceMasterDTO>();
+                    catSpaceMasterDTOs.add(spaceMasterDTO);
+                    catMap.put(spaceMasterDTO.getCategory(), catSpaceMasterDTOs);
+                }
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != inputStream)
+                inputStream.close();
+        }
+        return catMap;
+    }
+
+    private static Map<String, Integer> readHeaderColumn(XSSFSheet sheet){
+        Map<String, Integer> columnIndexMap = new HashMap<String, Integer>();
+        Row headerRow = sheet.getRow(sheet.getFirstRowNum());
+        Iterator<Cell> headerCells = headerRow.cellIterator();
+        Set<String> columnNameSet = getColumnNames();
+        while (headerCells.hasNext()) {
+            Cell cell = headerCells.next();
+            String cellValue = cell.getStringCellValue().trim();
+            if (columnNameSet.contains(cellValue)) {
+                columnIndexMap.put(cellValue, cell.getColumnIndex());
+            }
+        }
+        return columnIndexMap;
+    }
+
+    public static SpaceMasterDTO readRow(Row row, Map<String, Integer> columnIndexMap){
+        SpaceMasterDTO spaceMasterDTO = new SpaceMasterDTO();
+        spaceMasterDTO.setDivision(getCellValue(row, columnIndexMap.get(COLUMN_DIVISION)));
+        spaceMasterDTO.setCategory(getCellValue(row, columnIndexMap.get(COLUMN_CATEGORY)));
+                    /*spaceMasterDTO.setRunningFtWall(getCellValue(row, columnIndexMap.get(COLUMN_RUNNING_FT_WALL)));*/
+        spaceMasterDTO.setSisDetails(getCellValue(row, columnIndexMap.get(COLUMN_SIS_DETAILS)));
+        spaceMasterDTO.setLocation(getCellValue(row, columnIndexMap.get(COLUMN_LOCATION)));
+        String brand = getCellValue(row, columnIndexMap.get(COLUMN_BRAND));
+        if(StringUtil.isNotNullOrEmpty(brand)){
+            String[] brandCodeAndName = brand.split("-");
+            spaceMasterDTO.setBrandCode(brand.substring(0,brand.indexOf("-")));
+            spaceMasterDTO.setBrandName(brand.substring(brand.indexOf("-")+1,brand.length()));
+        }
+        //spaceMasterDTO.setBrandCode(getCellValue(row, columnIndexMap.get(COLUMN_BRAND_CODE)));
+        //spaceMasterDTO.setBrandName(getCellValue(row, columnIndexMap.get(COLUMN_BRAND_NAME)));
+        spaceMasterDTO.setArea(getCellValueAsDouble(getCellValue(row,columnIndexMap.get(COLUMN_AREA))));
+        spaceMasterDTO.setMG(getCellValue(row, columnIndexMap.get(COLUMN_MG)));
+        spaceMasterDTO.setPSFPD(getCellValue(row, columnIndexMap.get(COLUMN_PSFPD)));
+        spaceMasterDTO.setSales(getCellValue(row, columnIndexMap.get(COLUMN_SALES)));
+        spaceMasterDTO.setGMV(getCellValue(row, columnIndexMap.get(COLUMN_GMV)));
+        spaceMasterDTO.setAgreementMargin(getCellValue(row, columnIndexMap.get(COLUMN_AGREEMENT_MARGIN)));
+        spaceMasterDTO.setVistexMargin(getCellValue(row, columnIndexMap.get(COLUMN_VISTEX_MARGIN)));
+        spaceMasterDTO.setGMROF(getCellValue(row, columnIndexMap.get(COLUMN_GMROF)));
+        spaceMasterDTO.setSecurityDeposit(getCellValueAsDouble(getCellValue(row, columnIndexMap.get(COLUMN_SECURITY_DEPOSIT))));
+        spaceMasterDTO.setSdAmount(getCellValueAsDouble(getCellValue(row, columnIndexMap.get(COLUMN_SD_AMOUNT))));
+        return spaceMasterDTO;
+    }
 
     public static Map<String, SpaceMasterDTO> read(InputStream inputStream) throws IOException, NumberFormatException {
-
         try {
             Map<String, SpaceMasterDTO> dataMap = new HashMap<String, SpaceMasterDTO>();
             Map<String, Integer> columnIndexMap = new HashMap<String, Integer>();
@@ -526,7 +622,7 @@ public class ExcelUtil implements Constants {
     }
     
     
-    public static void main(String args[]) throws IOException {
+    public static void main1(String args[]) throws IOException {
 
         String []countryName = getCountries();
         /*HSSFWorkbook workbook = new HSSFWorkbook();
@@ -630,6 +726,12 @@ public class ExcelUtil implements Constants {
             countries[i]=i+"abcd"+i;
         }
         return countries;
+    }
+
+    public static void main(String args[]){
+        String name = "OMIKD-MINI KLUB-KIDS";
+        System.out.println(name.substring(0,name.indexOf("-")));
+        System.out.println(name.substring(name.indexOf("-")+1,name.length()));
     }
 
 

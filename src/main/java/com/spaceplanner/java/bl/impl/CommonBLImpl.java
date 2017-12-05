@@ -287,14 +287,21 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         List<FloorDesignDetailsEntity> floorDesignDetailList = commonDao.getFloorDesignDetails(floorEntity.getId());
         Set<DesignDetail> processed = new HashSet<DesignDetail>();
         for (FloorDesignDetailsEntity floorDesignDetail : floorDesignDetailList) {
-            List<DesignDetail> designDetails = designApi.getCategoryDesignDetails(floorDesignDetail.getCategory());
+            List<DesignDetail> designDetails = designApi.getCategoryDesignDetails(floorDesignDetail.getCategory(), floorDesignDetail.getDesignArea());
             if(null != designDetails && designDetails.size()>0){
+                DesignDetail selected = null;
                 for(DesignDetail designDetail : designDetails){
-                    if(!processed.contains(designDetail) && floorDesignDetail.getLocationCode().equals(designDetail.getLocation()) && floorDesignDetail.getDesignArea()== designDetail.getArea()){
-                        floorDesignDetail.setDesignBrandName(designDetail.getBrand());
-                        processed.add(designDetail);
+                    if(!processed.contains(designDetail) && null != floorDesignDetail.getBrand()
+                            && StringUtil.isNotNullOrEmpty(designDetail.getBrand())
+                            && floorDesignDetail.getBrand().getName().equals(designDetail.getBrand())){
+                        selected = designDetail;
+                        break;
                     }
                 }
+                if(null == selected)
+                    selected = designDetails.get(0);
+                floorDesignDetail.setDesignBrandName(selected.getBrand());
+                processed.add(selected);
             }
             //floorDesignDetail.setDesignBrandName(locationBrandNameMap.get(floorDesignDetail.getLocationCode()));
         }
@@ -332,12 +339,10 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             return;
         }
         FloorEntity floor = (FloorEntity) commonDao.get(FloorEntity.class, floorUploadForm.getFloorId());
-        boolean isBrandReadRequired = false;
         DesignStatus designStatus = null;
         if (floor.getDesignStatus().equals(DesignStatus.Space_Design_Published)
                 || floor.getDesignStatus().equals(DesignStatus.Brand_Master_Uploaded)) {
             designStatus = DesignStatus.Brand_Master_Uploaded;
-            isBrandReadRequired = true;
         } /*else if (floor.getDesignStatus().equals(DesignStatus.Brand_Design_published)
                 || floor.getDesignStatus().equals(DesignStatus.Enrichment_Uploaded)) {
             designStatus = DesignStatus.Enrichment_Uploaded;
@@ -347,7 +352,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             return;
         }
         try {
-            processMaster(floorUploadForm.getFile(), floor.getId(), isBrandReadRequired, status);
+            processMaster(floorUploadForm.getFile(), floor.getId(), status);
             if (!status.hasError()) {
                 floor.setDesignStatus(designStatus);
                 floor.setUpdateBy(floorUploadForm.getUserEntity());
@@ -374,39 +379,37 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         saveErrorMessage(status, HttpStatus.BAD_REQUEST.value());
     }
 
-    private void processMaster(MultipartFile multipartFile, Long floorId, boolean isBrandReadRequired, SpacePlannerResponseStatus status) throws IOException, NumberFormatException {
+    private void processMaster(MultipartFile multipartFile, Long floorId, SpacePlannerResponseStatus status) throws IOException, NumberFormatException {
         List<FloorDesignDetailsEntity> floorDesignDetails = commonDao.getFloorDesignDetails(floorId);
-        Map<String, SpaceMasterDTO> spaceMasterMap = ExcelUtil.read(multipartFile.getInputStream());
-        Map<String, BrandEntity> brandMap = null;
-        if (isBrandReadRequired) {
-            brandMap = convertBrandListIntoMap(commonDao.getBrands());
-        }
-        String errorLocationCode="";
+        Map<String, List<SpaceMasterDTO>> catAreaMap = ExcelUtil.readAsCategoryArea(multipartFile.getInputStream());
+        Map<String, BrandEntity> brandMap = convertBrandListIntoMap(commonDao.getBrands());
+        String error="";
         boolean isValid=true;
+        Set<SpaceMasterDTO> processed = new HashSet<SpaceMasterDTO>();
         for (FloorDesignDetailsEntity floorDesignDetail : floorDesignDetails) {
-            SpaceMasterDTO spaceMasterDTO = spaceMasterMap.get(floorDesignDetail.getLocationCode());
+            SpaceMasterDTO spaceMasterDTO = null;//spaceMasterMap.get(floorDesignDetail.getLocationCode());
+            List<SpaceMasterDTO> catSpaceMasterDTOS = catAreaMap.get(floorDesignDetail.getCategory()+"-"+floorDesignDetail.getDesignArea());
+            if(null != catSpaceMasterDTOS){
+                for(SpaceMasterDTO spaceMaster :  catSpaceMasterDTOS){
+                    if(!processed.contains(spaceMaster) && StringUtil.isNotNullOrEmpty(spaceMaster.getBrandCode())
+                            && StringUtil.isNotNullOrEmpty(spaceMaster.getBrandName())
+                            //&& ((null == floorDesignDetail.getBrand() && null != spaceMaster.getLocation() && spaceMaster.getLocation().equals(floorDesignDetail.getLocationCode()))
+                            && (null == floorDesignDetail.getBrand()  || floorDesignDetail.getBrand().getName().equals(spaceMaster.getBrandName()))){
+                        spaceMasterDTO = spaceMaster;
+                        processed.add(spaceMaster);
+                    }
+                }
+            }
             if (null != spaceMasterDTO) {
-                if (isBrandReadRequired) {
-                    if((StringUtil.isNotNullOrEmpty(spaceMasterDTO.getBrandCode()))
-                            ||(StringUtil.isNotNullOrEmpty(spaceMasterDTO.getBrandName()))){
-                        BrandEntity brandEntity = brandMap.get(spaceMasterDTO.getBrandName());
-                        if (null != brandEntity && null != spaceMasterDTO.getBrandCode() && brandEntity.getCode().equals(spaceMasterDTO.getBrandCode().trim())) {
-                            floorDesignDetail.setBrand(brandEntity);
-                            floorDesignDetail.setSisDetails(spaceMasterDTO.getSisDetails());
-                            floorDesignDetail.setMG(spaceMasterDTO.getMG());
-                            floorDesignDetail.setPSFPD(spaceMasterDTO.getPSFPD());
-                            floorDesignDetail.setSales(spaceMasterDTO.getSales());
-                            floorDesignDetail.setGMV(spaceMasterDTO.getGMV());
-                            floorDesignDetail.setAgreementMargin(spaceMasterDTO.getAgreementMargin());
-                            floorDesignDetail.setVistexMargin(spaceMasterDTO.getVistexMargin());
-                            floorDesignDetail.setGMROF(spaceMasterDTO.getGMROF());
-                            floorDesignDetail.setSecurityDeposit(spaceMasterDTO.getSecurityDeposit());
-                            floorDesignDetail.setSdAmount(spaceMasterDTO.getSdAmount());
-                        } else {
-                            errorLocationCode = "".equals(errorLocationCode)?floorDesignDetail.getLocationCode()
-                                    :errorLocationCode+COMMA_SEPARATOR+floorDesignDetail.getLocationCode();
-                            isValid=false;
-                        }
+                if((StringUtil.isNotNullOrEmpty(spaceMasterDTO.getBrandCode()))
+                        ||(StringUtil.isNotNullOrEmpty(spaceMasterDTO.getBrandName()))){
+                    BrandEntity brandEntity = brandMap.get(spaceMasterDTO.getBrandName());
+                    if (null != brandEntity && null != spaceMasterDTO.getBrandCode() && brandEntity.getCode().equals(spaceMasterDTO.getBrandCode().trim())) {
+                        updateFloorDesign(floorDesignDetail, brandEntity, spaceMasterDTO);
+                    } else {
+                        error = "".equals(error)?spaceMasterDTO.getBrandCode()+"-"+spaceMasterDTO.getBrandName()
+                                :error+COMMA_SEPARATOR+spaceMasterDTO.getBrandCode()+"-"+spaceMasterDTO.getBrandName();
+                        isValid=false;
                     }
                 }
             }
@@ -414,10 +417,23 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         if (isValid) {
             commonDao.saveAll(floorDesignDetails);
         }else{
-            status.setError(commonUtil.getText("error.invalid.brand.code.or.brand.name.for.location", errorLocationCode, status.getLocale()));
+            status.setError(commonUtil.getText("error.invalid.brand.code.or.brand.name", error, status.getLocale()));
         }
     }
 
+    private void updateFloorDesign(FloorDesignDetailsEntity floorDesignDetail, BrandEntity brandEntity, SpaceMasterDTO spaceMasterDTO){
+        floorDesignDetail.setBrand(brandEntity);
+        floorDesignDetail.setSisDetails(spaceMasterDTO.getSisDetails());
+        floorDesignDetail.setMG(spaceMasterDTO.getMG());
+        floorDesignDetail.setPSFPD(spaceMasterDTO.getPSFPD());
+        floorDesignDetail.setSales(spaceMasterDTO.getSales());
+        floorDesignDetail.setGMV(spaceMasterDTO.getGMV());
+        floorDesignDetail.setAgreementMargin(spaceMasterDTO.getAgreementMargin());
+        floorDesignDetail.setVistexMargin(spaceMasterDTO.getVistexMargin());
+        floorDesignDetail.setGMROF(spaceMasterDTO.getGMROF());
+        floorDesignDetail.setSecurityDeposit(spaceMasterDTO.getSecurityDeposit());
+        floorDesignDetail.setSdAmount(spaceMasterDTO.getSdAmount());
+    }
 
     public List<FloorDesignDetailsEntity> getFloorDesignDetails(Long floorId) {
         return commonDao.getFloorDesignDetails(floorId);
@@ -680,7 +696,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             if (changeRequestType.equals(ChangeRequestType.CICO)){
                 status.setError(commonUtil.getText("error.invalid.brand.code.or.brand.name.or.category.for.location", errorLocationCode, status.getLocale()));
             }else{
-                status.setError(commonUtil.getText("error.invalid.brand.code.or.brand.name.for.location", errorLocationCode, status.getLocale()));
+                status.setError(commonUtil.getText("error.invalid.brand.code.or.brand.name", errorLocationCode, status.getLocale()));
             }
 
         }

@@ -25,6 +25,7 @@ public class DesignParserExt implements DesignApi {
     private DXFDocument dxfDocument = null;
     private List<DesignDetail> designDetails = new ArrayList<DesignDetail>();
     private Map<String,List<DesignDetail>> catMap = new HashMap<String, List<DesignDetail>>();
+    private Map<String,List<DesignDetail>> catAreaMap = new HashMap<String, List<DesignDetail>>();
 
     public DesignParserExt(InputStream inputStream) throws ParseException {
         Parser parser = ParserBuilder.createDefaultParser();
@@ -48,6 +49,10 @@ public class DesignParserExt implements DesignApi {
         return catMap.get(category.trim());
     }
 
+    public List<DesignDetail> getCategoryDesignDetails(String category, Double area) {
+        return catAreaMap.get(category.toLowerCase()+"-"+area);
+    }
+
     private void processDXF(){
         List<DesignPolyLine> catLines = getLineLayer(CATEGORY_LINE);
         List<DesignMText> catTexts = getDesignMText(CATEGORY_NAME, TextType.CAT_NAME);
@@ -63,6 +68,7 @@ public class DesignParserExt implements DesignApi {
                                 brandLine.setHasPolyLine(true);
                                 DesignDetail designDetail = new DesignDetail();
                                 designDetail.setCategory(cat.getText());
+                                designDetail.setLineId(brandLine.getId());
                                 for (DesignMText mText : brandLine.getmTexts()) {
                                     switch (mText.getTextType()) {
                                         case LOCATION:
@@ -77,11 +83,8 @@ public class DesignParserExt implements DesignApi {
                                     }
                                 }
                                 designDetails.add(designDetail);
-                                List<DesignDetail> catDesignDetails = catMap.get(designDetail.getCategory());
-                                if (null == catDesignDetails)
-                                    catDesignDetails = new ArrayList<DesignDetail>();
-                                catDesignDetails.add(designDetail);
-                                catMap.put(designDetail.getCategory(), catDesignDetails);
+                                updateCatMap(designDetail);
+                                updateCatAreaMap(designDetail);
                             }
                         }
                     }
@@ -90,10 +93,26 @@ public class DesignParserExt implements DesignApi {
         }
     }
 
+    private void updateCatMap(DesignDetail designDetail){
+        List<DesignDetail> catDesignDetails = catMap.get(designDetail.getCategory());
+        if (null == catDesignDetails)
+            catDesignDetails = new ArrayList<DesignDetail>();
+        catDesignDetails.add(designDetail);
+        catMap.put(designDetail.getCategory(), catDesignDetails);
+    }
+    private void updateCatAreaMap(DesignDetail designDetail){
+        String key = designDetail.getCategory().toLowerCase()+"-"+designDetail.getArea();
+        List<DesignDetail> catAreaDesignDetails = catAreaMap.get(key);
+        if (null == catAreaDesignDetails)
+            catAreaDesignDetails = new ArrayList<DesignDetail>();
+        catAreaDesignDetails.add(designDetail);
+        catAreaMap.put(key, catAreaDesignDetails);
+    }
+
     private List<DesignPolyLine> getBrandLines(){
         List<DesignPolyLine> brandLines = getLineLayer(BRAND_LINE);
         List<DesignMText> brandAreas = getBrandAreas();
-        List<DesignMText> brandNames = new ArrayList<DesignMText>();//getBrandNames();
+        List<DesignMText> brandNames = getBrandNames();
         List<DesignMText> locations = new ArrayList<DesignMText>();//getLocations();
         for (DesignPolyLine brandLine : brandLines) {
             for(DesignMText brandArea : brandAreas){

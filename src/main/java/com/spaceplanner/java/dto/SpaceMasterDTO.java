@@ -16,7 +16,7 @@ public class SpaceMasterDTO {
     private String location;
     private String brandCode;
     private String brandName;
-    private String area;
+    private Double area;
     private String MG;
     private String PSFPD;
     private String sales;
@@ -84,11 +84,11 @@ public class SpaceMasterDTO {
         this.brandName = brandName;
     }
 
-    public String getArea() {
+    public Double getArea() {
         return area;
     }
 
-    public void setArea(String area) {
+    public void setArea(Double area) {
         this.area = area;
     }
 
@@ -165,19 +165,48 @@ public class SpaceMasterDTO {
     }
 
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         SpaceMasterDTO that = (SpaceMasterDTO) o;
 
+        if (category != null ? !category.equals(that.category) : that.category != null) return false;
         if (location != null ? !location.equals(that.location) : that.location != null) return false;
-
-        return true;
+        if (brandCode != null ? !brandCode.equals(that.brandCode) : that.brandCode != null) return false;
+        return brandName != null ? brandName.equals(that.brandName) : that.brandName == null;
     }
 
-
+    @Override
     public int hashCode() {
-        return location != null ? location.hashCode() : 0;
+        int result = category != null ? category.hashCode() : 0;
+        result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + (brandCode != null ? brandCode.hashCode() : 0);
+        result = 31 * result + (brandName != null ? brandName.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "SpaceMasterDTO{" +
+                "division='" + division + '\'' +
+                ", category='" + category + '\'' +
+                ", runningFtWall='" + runningFtWall + '\'' +
+                ", sisDetails='" + sisDetails + '\'' +
+                ", location='" + location + '\'' +
+                ", brandCode='" + brandCode + '\'' +
+                ", brandName='" + brandName + '\'' +
+                ", area='" + area + '\'' +
+                ", MG='" + MG + '\'' +
+                ", PSFPD='" + PSFPD + '\'' +
+                ", sales='" + sales + '\'' +
+                ", GMV='" + GMV + '\'' +
+                ", agreementMargin='" + agreementMargin + '\'' +
+                ", vistexMargin='" + vistexMargin + '\'' +
+                ", GMROF='" + GMROF + '\'' +
+                ", securityDeposit=" + securityDeposit +
+                ", sdAmount=" + sdAmount +
+                '}';
     }
 }
