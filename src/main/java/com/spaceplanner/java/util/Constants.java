@@ -42,6 +42,7 @@ public interface Constants {
     static final String COLUMN_SL_NO = "Sl No";
     static final String COLUMN_STORE = "Store";
     static final String COLUMN_FLOOR = "Floor";
+    static final String COLUMN_VERSION = "Version";
     static final String COLUMN_DIVISION = "Division";
     static final String COLUMN_CATEGORY = "Category";
     static final String COLUMN_RUNNING_FT_WALL = "Running Ft Wall";

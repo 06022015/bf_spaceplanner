@@ -98,7 +98,7 @@ public class ExcelUtil implements Constants {
         }
     }
 
-    public static void write(List<FloorDesignDetailsEntity> floorDesignDetails, String sheetName, OutputStream outputStream) throws IOException {
+    public static void write(List<FloorDesignDetailsEntity> floorDesignDetails, String sheetName, boolean isArchive, OutputStream outputStream) throws IOException {
         try {
             XSSFWorkbook workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet(sheetName);
@@ -112,6 +112,8 @@ public class ExcelUtil implements Constants {
             List<String> columnNameList = new ArrayList<String>();
             columnNameList.add(COLUMN_STORE);
             columnNameList.add(COLUMN_FLOOR);
+            if(isArchive)
+                columnNameList.add(COLUMN_VERSION);
             columnNameList.addAll(getColumnNameList(DesignStatus.Brand_Master_Uploaded));
             for (int i = 0; i < columnNameList.size(); i++) {
                 Cell cell = headerRow.createCell(i);
@@ -508,6 +510,7 @@ public class ExcelUtil implements Constants {
         Map<String, Object> columnValueMap = new HashMap<String, Object>();
         columnValueMap.put(COLUMN_STORE, floorDesignDetail.getFloor().getStore().getCode());
         columnValueMap.put(COLUMN_FLOOR, floorDesignDetail.getFloor().getFloorNumber());
+        columnValueMap.put(COLUMN_VERSION, floorDesignDetail.getFloor().getVersion());
         if (null != floorDesignDetail.getCategoryDivision())
             columnValueMap.put(COLUMN_DIVISION, floorDesignDetail.getCategoryDivision().getDivision());
         columnValueMap.put(COLUMN_CATEGORY, floorDesignDetail.getCategory());

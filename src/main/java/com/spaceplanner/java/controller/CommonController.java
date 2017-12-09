@@ -384,21 +384,26 @@ public class CommonController extends BaseController {
     public String archiveView(HttpServletRequest request,
                               @RequestParam(value = "storeId", required = false) Long storeId,
                               @RequestParam(value = "floorId", required = false) Long floorId,
+                              @RequestParam(value = "brandId", required = false) Long brandId,
                               @RequestParam(value = "version", required = false) Integer version) throws Exception {
         request.setAttribute("stores", commonBL.getActiveStores());
         if(null!=storeId){
             request.setAttribute("storeId", storeId);
             request.setAttribute("floors", commonBL.getArchiveFloors(storeId));
         }
+        String floorNumber = null;
         if(null!= floorId){
+            FloorEntity floor = commonBL.getFloor(floorId);
+            if(null != floor)
+                floorNumber = floor.getFloorNumber();
             request.setAttribute("floorId", floorId);
             request.setAttribute("maxVersion", commonBL.getFloorMaxVersion(floorId));
         }
-        if(null!=version){
+        if(null!=version || null != brandId){
             request.setAttribute("version", version);
-            List<FloorDesignDetailsEntity> floorDesignDetails = commonBL.getFloorDesignDetails(floorId);
+            request.setAttribute("brandId", brandId);
+            List<FloorDesignDetailsEntity> floorDesignDetails = commonBL.getFloorDesignDetails(storeId,null, brandId,floorNumber,Status.ARCHIVED,version);
             request.setAttribute("floorDetails", floorDesignDetails);
-            request.setAttribute("designStatus", floorDesignDetails.get(0).getFloor().getDesignStatus());
         }
         return "archiveView";
     }
@@ -455,6 +460,7 @@ public class CommonController extends BaseController {
                                 @RequestParam(value = "storeId", required = false) Long storeId,
                                 @RequestParam(value = "floorId", required = false) Long floorId,
                                 @RequestParam(value = "brandId", required = false) Long brandId,
+                                @RequestParam(value = "archive", required = false) boolean isArchive,
                                 @RequestParam(value = "version", required = false) Integer version) throws Exception {
         try {
             SpacePlannerResponseStatus status = new SpacePlannerResponseStatus();
@@ -479,20 +485,17 @@ public class CommonController extends BaseController {
                     status.setCode(404);
                     status.setMessage("Floor not found");
                 }else{
-                    if(null != version)
-                        floor = commonBL.getFloorByNameAndVersion(floor.getFloorNumber(),version,floor.getStore().getId());
                     floorNumber = floor.getFloorNumber();
-                    floorId = floor.getId();
                 }
             }
             if(status.getCode()!= 200){
                 saveStatus(request, status);
                 return ERROR_REDIRECT;
             }
-            String sheetName = null != brand?brand.getName():floor.getFloorNumber();
+            String sheetName = null != brand?brand.getName():floorNumber;
             String fileName = null != brand?brand.getCode()+"_"+brand.getName():floor.getStore().getName()+"_"+floor.getFloorNumber()+"_"+floor.getVersion();
             Status st = Status.ACTIVE;
-            if(null != version)
+            if(isArchive)
                 st = Status.ARCHIVED;
             response.setContentType("application/vnd.ms-excel");
             fileName = fileName.replace("\\s","_");
@@ -500,9 +503,9 @@ public class CommonController extends BaseController {
             String headerKey = "Content-Disposition";
             String headerValue = String.format("attachment; filename=\"%s\"",fileName);
             response.setHeader(headerKey, headerValue);
-            List<FloorDesignDetailsEntity> floorDesignDetails = commonBL.getFloorDesignDetails(storeId, floorId, brandId, floorNumber,st,version);
+            List<FloorDesignDetailsEntity> floorDesignDetails = commonBL.getFloorDesignDetails(storeId, null, brandId, floorNumber,st,version);
             if(null != brand){
-                ExcelUtil.write(floorDesignDetails,sheetName, response.getOutputStream());
+                ExcelUtil.write(floorDesignDetails,sheetName,isArchive, response.getOutputStream());
             }else{
                 List<BrandEntity> brands = commonBL.getBrands();
                 ExcelUtil.write(floorDesignDetails,floor,brands,response.getOutputStream());

@@ -15,12 +15,14 @@
     <table id="floor_view" class="display" cellspacing="0" width="100%">
         <thead>
             <tr>
+                <c:set var="baseCount" value="${not empty readLocation && readLocation eq true ?5:4}"/>
+                <c:set var="extraCol" value="${not empty brandId && empty version ?3:2}"/>
                 <c:choose>
                     <c:when test="${not empty brandId}">
-                        <th colspan="7"></th>
+                        <th colspan="${baseCount+extraCol}"></th>
                     </c:when>
                     <c:otherwise>
-                        <th colspan="5"></th>
+                        <th colspan="${baseCount}"></th>
                     </c:otherwise>
                 </c:choose>
                 <th colspan="2"><fmt:message key="label.Master.Data"/></th>
@@ -31,6 +33,9 @@
             <c:if test="${not empty brandId}">
                     <th><fmt:message key="label.Store"/></th>
                     <th><fmt:message key="label.Floor"/></th>
+                    <c:if test="${empty version}">
+                        <th><fmt:message key="label.Version"/></th>
+                    </c:if>
             </c:if>
             <th><fmt:message key="label.Division"/></th>
             <th><fmt:message key="label.Category"/></th>
@@ -65,6 +70,9 @@
                         <c:if test="${not empty brandId}">
                              <td>${floorDetail.floor.store.code}</td>
                              <td>${floorDetail.floor.floorNumber}</td>
+                             <c:if test="${empty version}">
+                                <td>${floorDetail.floor.version}</td>
+                             </c:if>
                         </c:if>
                         <td>${floorDetail.categoryDivision.division}</td>
                         <td>${floorDetail.category}</td>

@@ -163,22 +163,37 @@ $(document).ready(function(){
     });
 
     $('#storeId').on('change', function(e){
+        var status = $(this).attr("status");
         var storeId = $("select[name=storeId]").val();
         var brandId = $("select[name=brandId]").val();
         brandId = null == brandId || undefined == brandId?"":brandId;
-        var url = "/comm/report.html?storeId="+storeId+"&brandId="+brandId;
+        var url = "";
+        if(status == 'archive')
+            url = "/comm/archive/view.html?storeId="+storeId+"&brandId="+brandId;
+        else
+            url = "/comm/report.html?storeId="+storeId+"&brandId="+brandId;
         var newURL = getContextPath()+url;
         window.location.href = newURL;
     });
 
     $('#floorId').on('change', function(e){
+        var status = $(this).attr("status");
         var storeId = $("select[name=storeId]").val();
         var floorId = $("select[name=floorId]").val();
         var brandId = $("select[name=brandId]").val();
         brandId = null == brandId || undefined == brandId?"":brandId;
-        var url = "/comm/report.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId;
+        var url = "";
+        if(status == 'archive')
+            url = "/comm/archive/view.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId;
+        else
+            url = "/comm/report.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId;
         var newURL = getContextPath()+url;
         window.location.href = newURL;
+    });
+
+    $('#version').on('change', function(e){
+        var status = $(this).attr("status");
+        loadDesignDetail(status);
     });
 
 });
@@ -324,13 +339,13 @@ function showFormElements(element){
     $(element).parents("tr").find(".form_element").show();
 }
 
-function handleBrandFilter(view){
+function handleBrandFilter(status){
     $.get(getContextPath() + '/comm/brand.html?' + new Date(), {ajax:true, date:new Date()}, function (response) {
         var data = $.map(response.brand, function(item) {
             return { id: item.id, text: item.name };
         });
         $('#brandId').select2({
-            placeholder: 'Select brand',
+            placeholder: 'Select Brand',
             allowClear: true,
             minimumInputLength: 0,
             data: data
@@ -338,13 +353,22 @@ function handleBrandFilter(view){
         var selectedBrandId = $('#brandId').attr("brandId");
         $('#brandId').val(selectedBrandId).trigger('change');
         $('#brandId').on('change', function(e){
-            var storeId = $("select[name=storeId]").val();
-            var floorId = $("select[name=floorId]").val();
-            var brandId = $("select[name=brandId]").val();
-            brandId = null == brandId || undefined == brandId?"":brandId;
-            var url = "/comm/report.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId;
-            var newURL = getContextPath()+url;
-            window.location.href = newURL;
+            loadDesignDetail(status);
         });
     });
+}
+
+function loadDesignDetail(status){
+    var storeId = $("select[name=storeId]").val();
+    var floorId = $("select[name=floorId]").val();
+    var brandId = $("select[name=brandId]").val();
+    brandId = null == brandId || undefined == brandId?"":brandId;
+    var url ="";
+    if(status == 'archive'){
+        var version = $("select[name=version]").val();
+        url = "/comm/archive/view.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId+"&version="+version;
+    }else
+        url = "/comm/report.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId;
+    var newURL = getContextPath()+url;
+    window.location.href = newURL;
 }
