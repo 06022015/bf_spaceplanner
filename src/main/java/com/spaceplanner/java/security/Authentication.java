@@ -45,6 +45,7 @@ public class Authentication extends SavedRequestAwareAuthenticationSuccessHandle
         session.setAttribute(Constants.LOGGED_IN_USERNAME, usersEntity.getEmail());
         session.setAttribute(Constants.LOGGED_IN_FULL_NAME, usersEntity.getName());
         session.setAttribute(Constants.PATTERN_DOUBLE, ValidatorUtil.PATTERN_DOUBLE);
+        session.setAttribute(Constants.READ_LOCATION, CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true"));
         super.onAuthenticationSuccess(request, response, authentication);
     }
 

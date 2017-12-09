@@ -9,6 +9,7 @@ import com.spaceplanner.java.model.StoreEntity;
 import com.spaceplanner.java.model.UserEntity;
 import com.spaceplanner.java.model.master.BrandEntity;
 import com.spaceplanner.java.model.type.DesignStatus;
+import com.spaceplanner.java.model.type.Status;
 import org.kabeja.parser.ParseException;
 
 import java.io.IOException;
@@ -55,8 +56,12 @@ public interface CommonBL {
     void save(FloorUploadForm enrichUploadForm, SpacePlannerResponseStatus status) throws IOException;
 
     List<FloorDesignDetailsEntity> getFloorDesignDetails(Long floorId);
+
+    List<FloorDesignDetailsEntity> getFloorDesignDetails(Long storeId, Long floorId, Long brandId, String floorNumber, Status status, Integer version) ;
     
     List<BrandEntity>  getBrands();
+
+    BrandEntity getBrandById(Long id);
 
     
     int getFloorMaxVersion(Long floorId);

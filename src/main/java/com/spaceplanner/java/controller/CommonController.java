@@ -11,10 +11,12 @@ import com.spaceplanner.java.model.UserEntity;
 import com.spaceplanner.java.model.master.BrandEntity;
 import com.spaceplanner.java.model.type.ChangeRequestType;
 import com.spaceplanner.java.model.type.DesignStatus;
+import com.spaceplanner.java.model.type.Status;
 import com.spaceplanner.java.util.CommonUtil;
 import com.spaceplanner.java.util.ExcelUtil;
 import com.spaceplanner.java.util.FileUtil;
 import com.spaceplanner.java.util.ServletContextUtil;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -242,7 +245,7 @@ public class CommonController extends BaseController {
             return sendRedirect("/comm/floor/autocad/form.html?storeId="+designUploadForm.getStoreId()+"&floorId="+designUploadForm.getFloorId());
 
         }
-        return sendRedirect("/comm/floor/report.html?storeId="+designUploadForm.getStoreId()+"&floorId="+designUploadForm.getFloorId());
+        return sendRedirect("/comm/report.html?storeId="+designUploadForm.getStoreId()+"&floorId="+designUploadForm.getFloorId());
     }
 
     @RequestMapping(value = "/floor/upload/form", method = RequestMethod.GET)
@@ -287,7 +290,7 @@ public class CommonController extends BaseController {
             RETURN_PATH = sendRedirect("/comm/floor/upload/form.html?storeId="+floorUploadForm.getStoreId()+"&floorId="
                     +floorUploadForm.getFloorId())+"&isRequest="+floorUploadForm.isRequest();
         }else{
-            RETURN_PATH = sendRedirect("/comm/floor/report.html?storeId="+floorUploadForm.getStoreId()+"&floorId="
+            RETURN_PATH = sendRedirect("/comm/report.html?storeId="+floorUploadForm.getStoreId()+"&floorId="
                     +floorUploadForm.getFloorId());
         }
         return RETURN_PATH;
@@ -324,7 +327,7 @@ public class CommonController extends BaseController {
                 boolean isExcel = false;
                 FloorEntity floorEntity = commonBL.getFloor(floorId);
                 if (null != version) {
-                    floorEntity = commonBL.getFloorByNameAndVersion(floorEntity.getFloorNumber(), floorEntity.getVersion(), floorEntity.getStore().getId());
+                    floorEntity = commonBL.getFloorByNameAndVersion(floorEntity.getFloorNumber(), version, floorEntity.getStore().getId());
                 }
                 String baseLocation = CommonUtil.getProperty("file.location");
                 String filePath = baseLocation + floorEntity.getStore().getId() + "/";
@@ -372,7 +375,7 @@ public class CommonController extends BaseController {
         saveStatus(request, status);
         String target = request.getParameter("target");
         if(null!=target && !"".equals(target) && "report".equals(target)){
-            return sendRedirect("/comm/floor/report.html?storeId="+floorEntity.getStore().getId())+"&floorId="+floorId;
+            return sendRedirect("/comm/report.html?storeId="+floorEntity.getStore().getId())+"&floorId="+floorId;
         }
         return sendRedirect("/comm/store/form.html?storeId="+floorEntity.getStore().getId());
     }
@@ -398,5 +401,118 @@ public class CommonController extends BaseController {
             request.setAttribute("designStatus", floorDesignDetails.get(0).getFloor().getDesignStatus());
         }
         return "archiveView";
+    }
+
+    @RequestMapping(value = "/brand", method = RequestMethod.GET)
+    public String getBrands(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        List<BrandEntity> brands = commonBL.getBrands();
+        JSONArray brandArray = new JSONArray();
+        for(BrandEntity brand : brands){
+            JSONObject brandAsJSON = new JSONObject();
+            brandAsJSON.put("id", brand.getId());
+            brandAsJSON.put("code", brand.getCode());
+            brandAsJSON.put("name", brand.getName());
+            brandArray.put(brandAsJSON);
+        }
+        JSONObject json = new JSONObject();
+        json.put("brand", brandArray);
+        responseAsJSON(response,json);
+        return null;
+    }
+
+    @RequestMapping(value = "/report", method = RequestMethod.GET)
+    public String report(HttpServletRequest request,
+                              @RequestParam(value = "storeId", required = false) Long storeId,
+                              @RequestParam(value = "floorId", required = false) Long floorId,
+                              @RequestParam(value = "brandId", required = false) Long brandId) throws Exception {
+        request.setAttribute("stores", commonBL.getActiveStores());
+        List<FloorEntity> floorList = null;
+        if (null != storeId){
+            request.setAttribute("storeId", storeId);
+            floorList =  commonBL.getActiveFloors(storeId);
+            request.setAttribute("floors",floorList);
+        }
+        if(null!=floorId && null != floorList && floorList.size()>0){
+            request.setAttribute("floorId", floorId);
+            for(FloorEntity floorEntity : floorList){
+                if(floorEntity.getId().equals(floorId)){
+                    request.setAttribute("designStatus", floorEntity.getDesignStatus());
+                    break;
+                }
+            }
+        }
+        if(null != brandId)
+            request.setAttribute("brandId", brandId);
+        if(null != floorId || null != brandId){
+            List<FloorDesignDetailsEntity> floorDesignDetailList = commonBL.getFloorDesignDetails(storeId,floorId, brandId,null, Status.ACTIVE, null);
+            request.setAttribute("floorDetails", floorDesignDetailList);
+        }
+        return "reportView";
+    }
+
+    @RequestMapping(value = "/download/xls", method = RequestMethod.GET)
+    public String download(HttpServletRequest request, HttpServletResponse response,
+                                @RequestParam(value = "storeId", required = false) Long storeId,
+                                @RequestParam(value = "floorId", required = false) Long floorId,
+                                @RequestParam(value = "brandId", required = false) Long brandId,
+                                @RequestParam(value = "version", required = false) Integer version) throws Exception {
+        try {
+            SpacePlannerResponseStatus status = new SpacePlannerResponseStatus();
+            String ERROR_REDIRECT = sendRedirect("/comm/report.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId+"&version="+version);
+            if(null == floorId && null == brandId){
+                status.setCode(400);
+                status.setMessage("Floor or Brand is required.");
+            }
+            BrandEntity brand = null;
+            if(null != brandId){
+                brand = commonBL.getBrandById(brandId);
+                if(null == brand){
+                    status.setCode(404);
+                    status.setMessage("Brand not found");
+                }
+            }
+            FloorEntity floor = null;
+            String floorNumber = null;
+            if(null != floorId){
+                floor = commonBL.getFloor(floorId);
+                if(null == floor){
+                    status.setCode(404);
+                    status.setMessage("Floor not found");
+                }else{
+                    if(null != version)
+                        floor = commonBL.getFloorByNameAndVersion(floor.getFloorNumber(),version,floor.getStore().getId());
+                    floorNumber = floor.getFloorNumber();
+                    floorId = floor.getId();
+                }
+            }
+            if(status.getCode()!= 200){
+                saveStatus(request, status);
+                return ERROR_REDIRECT;
+            }
+            String sheetName = null != brand?brand.getName():floor.getFloorNumber();
+            String fileName = null != brand?brand.getCode()+"_"+brand.getName():floor.getStore().getName()+"_"+floor.getFloorNumber()+"_"+floor.getVersion();
+            Status st = Status.ACTIVE;
+            if(null != version)
+                st = Status.ARCHIVED;
+            response.setContentType("application/vnd.ms-excel");
+            fileName = fileName.replace("\\s","_");
+            fileName = fileName + ".xls";
+            String headerKey = "Content-Disposition";
+            String headerValue = String.format("attachment; filename=\"%s\"",fileName);
+            response.setHeader(headerKey, headerValue);
+            List<FloorDesignDetailsEntity> floorDesignDetails = commonBL.getFloorDesignDetails(storeId, floorId, brandId, floorNumber,st,version);
+            if(null != brand){
+                ExcelUtil.write(floorDesignDetails,sheetName, response.getOutputStream());
+            }else{
+                List<BrandEntity> brands = commonBL.getBrands();
+                ExcelUtil.write(floorDesignDetails,floor,brands,response.getOutputStream());
+            }
+        } catch (FileNotFoundException e){
+            e.printStackTrace();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

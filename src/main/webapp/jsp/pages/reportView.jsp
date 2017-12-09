@@ -5,7 +5,7 @@
         <div class="grid_row">
             <div class="grid_column">
                 <label class="grid_level"><fmt:message key="label.Store"/>:</label>
-                <select name="storeId" onchange="loadFloor(this,'/comm/floor/report.html');" required>
+                <select id="storeId" name="storeId">
                     <option value=""><fmt:message key="label.Select.Store"/></option>
                     <c:forEach items="${stores}" var="str">
                         <c:choose>
@@ -21,7 +21,7 @@
             </div>
             <div class="grid_column">
                 <label class="grid_level"><fmt:message key="label.Floor"/>:</label>
-                <select name="floorId" required onchange="loadFloorDetails(this,'/comm/floor/report.html?storeId=${storeId}');">
+                <select id="floorId" name="floorId">
                     <option value=""><fmt:message key="label.Select.Floor"/></option>
                     <c:forEach items="${floors}" var="flr">
                         <c:choose>
@@ -35,6 +35,12 @@
                     </c:forEach>
                 </select>
             </div>
+        </div>
+        <div class="grid_row">
+            <div class="grid_column">
+                <label class="grid_level"><fmt:message key="label.Brand"/>:</label>
+                <select id="brandId" name="brandId" brandId="${brandId}"></select>
+            </div>
             <c:if test="${not empty floorId}">
                 <div class="grid_column">
                     <label class="grid_level"><fmt:message key="label.Status"/>:</label>
@@ -42,12 +48,12 @@
                 </div>
             </c:if>
         </div>
-        <c:if test="${not empty storeId  && not empty floorId}">
+        <c:if test="${not empty storeId  || not empty floorId || not empty brandId}">
             <div class="grid_row">
-            <c:if test="${designStatus ne 'Master_Created' && designStatus ne 'Master_Published'}">
-                <a href="<c:url value="/comm/floor/download.html?storeId=${storeId}&floorId=${floorId}&type=excel"/>"
-                   class="button" title="<fmt:message key="label.Download.Excel"/>"><fmt:message key="label.Download.Excel"/></a>
-            </c:if>
+                <c:if test="${designStatus ne 'Master_Created' && designStatus ne 'Master_Published'}">
+                    <a href="<c:url value="/comm/download/xls.html?storeId=${storeId}&floorId=${floorId}&brandId=${brandId}&type=excel"/>"
+                       class="button" title="<fmt:message key="label.Download.Excel"/>"><fmt:message key="label.Download.Excel"/></a>
+                </c:if>
                 <security:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SPACE_PLANNER','ROLE_DESIGNER')">
                     <security:authorize access="!hasRole('ROLE_DESIGNER')">
                         <c:choose>
@@ -105,7 +111,17 @@
     </div>
 </div>
 <div id="floor_detail">
-    <c:if test="${not empty storeId  && not empty floorId}">
+    <c:if test="${not empty storeId  || not empty floorId || not empty brandId}">
         <jsp:include page="floorView.jsp"/>
     </c:if>
 </div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        handleBrandFilter('report');
+    });
+</script>
+<style type="text/css">
+    .grid_column > span{
+        float: right;
+    }
+</style>

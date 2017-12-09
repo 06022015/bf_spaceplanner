@@ -37,7 +37,8 @@ public class BaseController {
     }
 
     protected void responseAsJSON(HttpServletResponse response, JSONObject object) throws Exception {
-        response.setContentType("application/x-json");
+        //response.setContentType("application/x-json");
+        response.setContentType("application/json");
         response.getWriter().print(object);
     }
 }

@@ -26,17 +26,24 @@ public class DesignParserExt implements DesignApi {
     private List<DesignDetail> designDetails = new ArrayList<DesignDetail>();
     private Map<String,List<DesignDetail>> catMap = new HashMap<String, List<DesignDetail>>();
     private Map<String,List<DesignDetail>> catAreaMap = new HashMap<String, List<DesignDetail>>();
+    private boolean readBrand =false;
+    private boolean readLocation =false;
 
-    public DesignParserExt(InputStream inputStream) throws ParseException {
+    public DesignParserExt(InputStream inputStream, boolean readBrand, boolean readLocation) throws ParseException {
         Parser parser = ParserBuilder.createDefaultParser();
         parser.parse(inputStream, org.kabeja.parser.DXFParser.DEFAULT_ENCODING);
-        dxfDocument = parser.getDocument();
-        processDXF();
+        init(parser, readBrand, readLocation);
     }
 
-    public DesignParserExt(String filePath) throws ParseException {
+    public DesignParserExt(String filePath, boolean readBrand, boolean readLocation) throws ParseException {
         Parser parser = ParserBuilder.createDefaultParser();
         parser.parse(filePath, org.kabeja.parser.DXFParser.DEFAULT_ENCODING);
+        init(parser, readBrand, readLocation);
+    }
+
+    private void init(Parser parser, boolean readBrand, boolean readLocation){
+        this.readBrand = readBrand;
+        this.readLocation = readLocation;
         this.dxfDocument = parser.getDocument();
         processDXF();
     }
@@ -113,7 +120,7 @@ public class DesignParserExt implements DesignApi {
         List<DesignPolyLine> brandLines = getLineLayer(BRAND_LINE);
         List<DesignMText> brandAreas = getBrandAreas();
         List<DesignMText> brandNames = getBrandNames();
-        List<DesignMText> locations = new ArrayList<DesignMText>();//getLocations();
+        List<DesignMText> locations = getLocations();
         for (DesignPolyLine brandLine : brandLines) {
             for(DesignMText brandArea : brandAreas){
                 if(!brandArea.isHasBrandLine() && brandLine.isValid(brandArea.getDxfPoint())){
@@ -141,18 +148,33 @@ public class DesignParserExt implements DesignApi {
     }
 
     private List<DesignMText> getBrandNames() {
-        List<DesignMText> brandNames = getDesignMText(BRAND_NAME, TextType.BRAND_NAME);
+        List<DesignMText> brandNames;
+        try{
+            brandNames = getDesignMText(BRAND_NAME, TextType.BRAND_NAME);
+        }catch (LayerNotFoundException le){
+            if(readBrand)
+                throw le;
+            else
+                brandNames = new ArrayList<DesignMText>();
+        }
         return brandNames;
     }
 
     private List<DesignMText> getLocations() {
-        List<DesignMText> locations = getDesignMText(LOCATION, TextType.LOCATION);
+        List<DesignMText> locations;
+        try{
+            locations = getDesignMText(LOCATION, TextType.LOCATION);
+        }catch (LayerNotFoundException le){
+            if(readLocation)
+                throw le;
+            else
+                locations = new ArrayList<DesignMText>();
+        }
         return locations;
     }
 
     private List<DesignMText> getBrandAreas() {
-        List<DesignMText> brandAreas = getDesignMText(BRAND_AREA, TextType.BRAND_AREA);
-        return brandAreas;
+        return getDesignMText(BRAND_AREA, TextType.BRAND_AREA);
     }
 
     private List<DesignPolyLine> getLineLayer(String layerName) {
@@ -203,8 +225,8 @@ public class DesignParserExt implements DesignApi {
     }
 
     public static void main(String args[]) throws ParseException {
-        //DesignParser designParser = new DesignParser("/Users/ashqures/project/home-pc/space_planner/prod_issue/SAHARA-GANJ-FF-27-07-16_as.dxf");
-        DesignParserExt designParser = new DesignParserExt("/Users/ashqures/project/home-pc/space_planner/bf/doc/BF_Krome_Mall_Pune/1.dxf");
+        //DesignParserExt designParser = new DesignParserExt("/Users/ashqures/project/home-pc/space_planner/prod_issue/SAHARA-GANJ-FF-27-07-16_as.dxf", false, true);
+        DesignParserExt designParser = new DesignParserExt("/Users/ashqures/project/home-pc/space_planner/bf/doc/1.dxf", true, false);
         List<DesignDetail> designDetails = designParser.getDesignDetails();
         for(DesignDetail designDetail : designDetails)
             System.out.println(designDetail);

@@ -162,6 +162,25 @@ $(document).ready(function(){
 
     });
 
+    $('#storeId').on('change', function(e){
+        var storeId = $("select[name=storeId]").val();
+        var brandId = $("select[name=brandId]").val();
+        brandId = null == brandId || undefined == brandId?"":brandId;
+        var url = "/comm/report.html?storeId="+storeId+"&brandId="+brandId;
+        var newURL = getContextPath()+url;
+        window.location.href = newURL;
+    });
+
+    $('#floorId').on('change', function(e){
+        var storeId = $("select[name=storeId]").val();
+        var floorId = $("select[name=floorId]").val();
+        var brandId = $("select[name=brandId]").val();
+        brandId = null == brandId || undefined == brandId?"":brandId;
+        var url = "/comm/report.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId;
+        var newURL = getContextPath()+url;
+        window.location.href = newURL;
+    });
+
 });
 
 function validateFloorNumber(){
@@ -231,6 +250,15 @@ function loadFloorDetailsByVersion(element, url){
     window.location.href = newURL;
 }
 
+function loadBrandReport(element, url){
+    var newURL = getContextPath()+url;
+    var selectedVal = $(element).val();
+    if(undefined !=selectedVal && ""!= selectedVal){
+        newURL = newURL+"&brandId="+selectedVal;
+    }
+    window.location.href = newURL;
+}
+
 function loadChild(element, url){
     var newURL = getContextPath()+url;
     var selectedVal = $(element).val();
@@ -294,4 +322,29 @@ function showFormElements(element){
     });
     $(element).parents("tr").find(".table_element").hide();
     $(element).parents("tr").find(".form_element").show();
+}
+
+function handleBrandFilter(view){
+    $.get(getContextPath() + '/comm/brand.html?' + new Date(), {ajax:true, date:new Date()}, function (response) {
+        var data = $.map(response.brand, function(item) {
+            return { id: item.id, text: item.name };
+        });
+        $('#brandId').select2({
+            placeholder: 'Select brand',
+            allowClear: true,
+            minimumInputLength: 0,
+            data: data
+        });
+        var selectedBrandId = $('#brandId').attr("brandId");
+        $('#brandId').val(selectedBrandId).trigger('change');
+        $('#brandId').on('change', function(e){
+            var storeId = $("select[name=storeId]").val();
+            var floorId = $("select[name=floorId]").val();
+            var brandId = $("select[name=brandId]").val();
+            brandId = null == brandId || undefined == brandId?"":brandId;
+            var url = "/comm/report.html?storeId="+storeId+"&floorId="+floorId+"&brandId="+brandId;
+            var newURL = getContextPath()+url;
+            window.location.href = newURL;
+        });
+    });
 }

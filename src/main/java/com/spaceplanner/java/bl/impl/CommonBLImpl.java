@@ -242,7 +242,8 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
 
     private void processSpaceDesign(FloorEntity floorEntity, MultipartFile designDXFFile, SpacePlannerResponseStatus status) throws IOException, ParseException {
         logger.info("Processing space design...");
-        DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream());
+        boolean readLocation = CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true");
+        DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream(), false, readLocation);
         List<DesignDetail> designDetails = designApi.getDesignDetails();
         List<FloorDesignDetailsEntity> floorDesignDetailList = new ArrayList<FloorDesignDetailsEntity>();
         Map<String, CategoryDivision> categoryDivisionMap = commonDao.getCategoryDivision();
@@ -283,7 +284,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
     }
 
     private void processBrandDesign(FloorEntity floorEntity, MultipartFile designDXFFile) throws IOException, ParseException {
-        DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream());
+        DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream(), true, false);
         List<FloorDesignDetailsEntity> floorDesignDetailList = commonDao.getFloorDesignDetails(floorEntity.getId());
         Set<DesignDetail> processed = new HashSet<DesignDetail>();
         for (FloorDesignDetailsEntity floorDesignDetail : floorDesignDetailList) {
@@ -439,9 +440,17 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         return commonDao.getFloorDesignDetails(floorId);
     }
 
+    public List<FloorDesignDetailsEntity> getFloorDesignDetails(Long storeId, Long floorId, Long brandId, String floorNumber, Status status, Integer version){
+        return commonDao.getFloorDesignDetails(storeId,floorId, brandId, floorNumber, status,version);
+    }
+
 
     public List<BrandEntity> getBrands() {
         return commonDao.getBrands();
+    }
+
+    public BrandEntity getBrandById(Long id) {
+        return commonDao.getBrandById(id);
     }
 
 

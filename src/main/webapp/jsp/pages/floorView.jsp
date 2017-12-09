@@ -15,16 +15,29 @@
     <table id="floor_view" class="display" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th colspan="5"></th>
+                <c:choose>
+                    <c:when test="${not empty brandId}">
+                        <th colspan="7"></th>
+                    </c:when>
+                    <c:otherwise>
+                        <th colspan="5"></th>
+                    </c:otherwise>
+                </c:choose>
                 <th colspan="2"><fmt:message key="label.Master.Data"/></th>
                 <th colspan="1"><fmt:message key="label.Design.Data"/></th>
                 <th colspan="9"></th>
             </tr>
         <tr>
+            <c:if test="${not empty brandId}">
+                    <th><fmt:message key="label.Store"/></th>
+                    <th><fmt:message key="label.Floor"/></th>
+            </c:if>
             <th><fmt:message key="label.Division"/></th>
             <th><fmt:message key="label.Category"/></th>
             <th><fmt:message key="label.SIS.Details"/></th>
-            <th title="<fmt:message key="label.Location"/>"><fmt:message key="label.Location.short"/></th>
+            <c:if test="${not empty readLocation && readLocation eq true}">
+                <th title="<fmt:message key="label.Location"/>"><fmt:message key="label.Location.short"/></th>
+            </c:if>
             <th><fmt:message key="label.Area"/></th>
             <th><fmt:message key="label.Brand.Code"/></th>
             <th><fmt:message key="label.Brand.Name"/></th>
@@ -49,10 +62,16 @@
                         title="<fmt:formatDate pattern="dd/MM/yyyy"
                                                value="${floorDetail.startDate}" />" </c:if>
                             >
+                        <c:if test="${not empty brandId}">
+                             <td>${floorDetail.floor.store.code}</td>
+                             <td>${floorDetail.floor.floorNumber}</td>
+                        </c:if>
                         <td>${floorDetail.categoryDivision.division}</td>
                         <td>${floorDetail.category}</td>
                         <td>${floorDetail.sisDetails}</td>
-                        <td>${floorDetail.locationCode}</td>
+                        <c:if test="${not empty readLocation && readLocation eq true}">
+                            <td>${floorDetail.locationCode}</td>
+                        </c:if>
                         <td>${floorDetail.designArea}</td>
                         <c:choose>
                             <c:when test="${floorDetail.valid eq false}">

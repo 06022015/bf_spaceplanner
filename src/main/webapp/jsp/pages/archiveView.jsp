@@ -36,6 +36,10 @@
                 </select>
             </div>
             <div class="grid_column">
+                <label class="grid_level"><fmt:message key="label.Brand"/>:</label>
+                <select id="brandId" name="brandId" brandId="${brandId}"></select>
+            </div>
+            <div class="grid_column">
                 <label class="grid_level"><fmt:message key="label.Version"/>:</label>
                 <select name="version" required onchange="loadFloorDetailsByVersion(this, '/comm/archive/view.html?storeId=${storeId}&floorId=${floorId}');">
                     <option value=""><fmt:message key="label.Select.Version"/></option>
@@ -72,3 +76,13 @@
         <jsp:include page="floorView.jsp"/>
     </c:if>
 </div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        handleBrandFilter('archive');
+    });
+</script>
+<style type="text/css">
+    .grid_column > span{
+        float: right;
+    }
+</style>

@@ -8,6 +8,7 @@ import com.spaceplanner.java.model.master.BrandEntity;
 import com.spaceplanner.java.model.master.CategoryDivision;
 import com.spaceplanner.java.model.type.DesignStatus;
 import com.spaceplanner.java.model.type.Status;
+import com.spaceplanner.java.util.StringUtil;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
@@ -108,6 +109,27 @@ public class CommonDaoImpl extends BaseDaoImpl implements CommonDao {
         return criteria.list();
     }
 
+    public List<FloorDesignDetailsEntity> getFloorDesignDetails(Long storeId, Long floorId, Long brandId, String floorNumber, Status status, Integer version) {
+        Criteria criteria = getCurrentSession().createCriteria(FloorDesignDetailsEntity.class)
+                .createAlias("floor", "floor")
+                .add(Restrictions.eq("floor.status", status));
+        if(null != floorId)
+            criteria.add(Restrictions.eq("floor.id", floorId));
+        if(StringUtil.isNotNullOrEmpty(floorNumber))
+            criteria.add(Restrictions.eq("floor.floorNumber", floorNumber));
+        if(null != version)
+            criteria.add(Restrictions.eq("floor.version", version));
+        if(null != storeId){
+            criteria.createAlias("floor.store", "store")
+                    .add(Restrictions.eq("store.id", storeId));
+        }
+        if (null != brandId) {
+            criteria.createAlias("brand", "brand")
+                    .add(Restrictions.eq("brand.id", brandId));
+        }
+        return criteria.list();
+    }
+
 
     public void deleteFloorDetails(Long floorId, int version) {
         String hql = "delete from FloorDesignDetailsEntity fdd where fdd.floor.id in (from FloorEntity f where f.id=:floorId and f.designStatus=:designStatus)";
@@ -138,8 +160,15 @@ public class CommonDaoImpl extends BaseDaoImpl implements CommonDao {
         Criteria criteria = getCurrentSession().createCriteria(BrandEntity.class);
         return criteria.list();
     }
-    
-    
+
+    public BrandEntity getBrandById(Long id) {
+        Criteria criteria = getCurrentSession().createCriteria(BrandEntity.class)
+                .add(Restrictions.eq("id", id));
+        List<BrandEntity> brands = criteria.list();
+        return null !=brands && brands.size()>0?brands.get(0):null;
+    }
+
+
     public boolean isValidBrandDesign(Long floorId){
         String hql = "from FloorDesignDetailsEntity fdd where fdd.floor.id =:floorId and  fdd.brand != null and fdd.designBrandName != fdd.brand.name";
         Query query = getCurrentSession().createQuery(hql);

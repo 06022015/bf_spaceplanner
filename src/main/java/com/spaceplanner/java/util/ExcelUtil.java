@@ -98,6 +98,76 @@ public class ExcelUtil implements Constants {
         }
     }
 
+    public static void write(List<FloorDesignDetailsEntity> floorDesignDetails, String sheetName, OutputStream outputStream) throws IOException {
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet(sheetName);
+            XSSFFont font = workbook.createFont();
+            font.setBold(true);
+            font.setBoldweight(Font.BOLDWEIGHT_BOLD);
+            font.setFontHeight(16);
+            XSSFRow headerRow = sheet.createRow(0);
+            CellStyle headerCellStyle = workbook.createCellStyle();
+            headerCellStyle.setFont(font);
+            List<String> columnNameList = new ArrayList<String>();
+            columnNameList.add(COLUMN_STORE);
+            columnNameList.add(COLUMN_FLOOR);
+            columnNameList.addAll(getColumnNameList(DesignStatus.Brand_Master_Uploaded));
+            for (int i = 0; i < columnNameList.size(); i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columnNameList.get(i));
+                cell.setCellStyle(headerCellStyle);
+                sheet.autoSizeColumn(i);
+            }
+            CellStyle doubleCellStyle = workbook.createCellStyle();
+            doubleCellStyle.setDataFormat(workbook.createDataFormat().getFormat("0.0"));
+            CellStyle mismatchCellStyle = workbook.createCellStyle();
+            mismatchCellStyle.setFillBackgroundColor(IndexedColors.RED.getIndex());
+            mismatchCellStyle.setFillPattern(CellStyle.FINE_DOTS);
+            CellStyle matchCellStyle = workbook.createCellStyle();
+            matchCellStyle.setFillBackgroundColor(IndexedColors.GREEN.getIndex());
+            matchCellStyle.setFillPattern(CellStyle.FINE_DOTS);
+            int rowCount = 1;
+            for (FloorDesignDetailsEntity floorDesignDetail : floorDesignDetails) {
+                Map<String, Object> floorDetailMap = getFloorDetails(floorDesignDetail);
+                XSSFRow row = sheet.createRow(rowCount);
+                int index=0;
+                if (floorDesignDetail.getFloor().getDesignStatus().equals(DesignStatus.Brand_Design_Uploaded)){
+                    row.createCell(index).setCellValue(floorDetailMap.get(columnNameList.get(index))+"");
+                    if (floorDesignDetail.isValid())
+                        row.getCell(index).setCellStyle(matchCellStyle);
+                    else
+                        row.getCell(index).setCellStyle(mismatchCellStyle);
+                    index=index+1;
+                }
+                for (int i = index; i < columnNameList.size(); i++) {
+                    Cell cell = row.createCell(i);
+                    Object value = floorDetailMap.get(columnNameList.get(i));
+                    if (null != value) {
+                        if (value instanceof Double){
+                            cell.setCellStyle(doubleCellStyle);
+                            cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+                            cell.setCellValue(new Double(value.toString()));
+                        }
+                        else
+                            cell.setCellValue(value + "");
+                    }
+                    sheet.autoSizeColumn(i);
+                }
+                rowCount++;
+            }
+            workbook.write(outputStream);
+            logger.info("Excel done");
+        } catch (Exception e) {
+            logger.error("Unable to write file \n" + e);
+        } finally {
+            if (null != outputStream) {
+                outputStream.flush();
+                outputStream.close();
+            }
+        }
+    }
+
     public static void write(List<FloorDesignDetailsEntity> floorDesignDetails, FloorEntity floor,List<BrandEntity> brandList, OutputStream outputStream) throws IOException {
         try {
             XSSFWorkbook workbook = new XSSFWorkbook();
@@ -111,7 +181,8 @@ public class ExcelUtil implements Constants {
             headerCellStyle.setFont(font);
             List<String> columnNameList = getColumnNameList(floor.getDesignStatus());
             int brandColIndex = columnNameList.indexOf(COLUMN_BRAND);
-            prepareDataValidationForBrand(workbook,sheet,brandList,floorDesignDetails.size(),brandColIndex);
+            if(null != brandList && brandList.size()>0)
+                prepareDataValidationForBrand(workbook,sheet,brandList,floorDesignDetails.size(),brandColIndex);
             for (int i = 0; i < columnNameList.size(); i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columnNameList.get(i));
@@ -435,6 +506,8 @@ public class ExcelUtil implements Constants {
 
     private static Map<String, Object> getFloorDetails(FloorDesignDetailsEntity floorDesignDetail) {
         Map<String, Object> columnValueMap = new HashMap<String, Object>();
+        columnValueMap.put(COLUMN_STORE, floorDesignDetail.getFloor().getStore().getCode());
+        columnValueMap.put(COLUMN_FLOOR, floorDesignDetail.getFloor().getFloorNumber());
         if (null != floorDesignDetail.getCategoryDivision())
             columnValueMap.put(COLUMN_DIVISION, floorDesignDetail.getCategoryDivision().getDivision());
         columnValueMap.put(COLUMN_CATEGORY, floorDesignDetail.getCategory());
@@ -469,7 +542,9 @@ public class ExcelUtil implements Constants {
         columnNameList.add(COLUMN_CATEGORY);
         /*columnNameList.add(COLUMN_RUNNING_FT_WALL);*/
         columnNameList.add(COLUMN_SIS_DETAILS);
-        columnNameList.add(COLUMN_LOCATION);
+        boolean readLocation = CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true");
+        if(readLocation)
+            columnNameList.add(COLUMN_LOCATION);
         columnNameList.add(COLUMN_AREA);
         columnNameList.add(COLUMN_BRAND);
         /*columnNameList.add(COLUMN_BRAND_CODE);

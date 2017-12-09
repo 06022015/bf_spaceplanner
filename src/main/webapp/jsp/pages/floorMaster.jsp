@@ -65,8 +65,8 @@
                             </td>
                         </c:if>
                         <td class="editable link" name="floorNumber" required="true" form="floor_form"
-                            href="<c:url value="/comm/floor/report.html?storeId=${floor.store.id}&floorId=${floor.id}"/>" value="${floor.floorNumber}">
-                            <a href="<c:url value="/comm/floor/report.html?storeId=${floor.store.id}&floorId=${floor.id}"/>" class="action_property">${floor.floorNumber}</a>
+                            href="<c:url value="/comm/report.html?storeId=${floor.store.id}&floorId=${floor.id}"/>" value="${floor.floorNumber}">
+                            <a href="<c:url value="/comm/report.html?storeId=${floor.store.id}&floorId=${floor.id}"/>" class="action_property">${floor.floorNumber}</a>
                         </td>
                         <%--<td class="editable" name="chargeableArea" required="true" form="floor_form" value="${floor.chargeableArea}">${floor.chargeableArea}</td>--%>
                         <td class="editable" name="carpetArea" required="true" form="floor_form" value="${floor.carpetArea}">${floor.carpetArea}</td>

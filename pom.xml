@@ -17,7 +17,7 @@
         <slf4j.version>1.6.1</slf4j.version>
         <json.version>1.3.5</json.version>
         <project.build.finalName>spaceplanner</project.build.finalName>
-        <application.server.home.dir>H:\soft\apache-tomcat-7.0.29</application.server.home.dir>
+        <application.server.home.dir>/Users/ashqures/config/apache-tomcat-7.0.61</application.server.home.dir>
         <application.server.deploy.dir>${application.server.home.dir}/webapps</application.server.deploy.dir>
         <application.server.host>localhost</application.server.host>
         <application.server.deploy.url>file://${application.server.deploy.dir}</application.server.deploy.url>

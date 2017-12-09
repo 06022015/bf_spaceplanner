@@ -26,6 +26,8 @@ public interface Constants {
 
     static final String FILE_CONTENT_TYPE_PDF = "application/pdf";
 
+    static final String READ_LOCATION = "readLocation";
+
 
 
     static final String FILE_TYPE_PDF = ".pdf";
@@ -38,6 +40,8 @@ public interface Constants {
     /*Excel column name*/
     
     static final String COLUMN_SL_NO = "Sl No";
+    static final String COLUMN_STORE = "Store";
+    static final String COLUMN_FLOOR = "Floor";
     static final String COLUMN_DIVISION = "Division";
     static final String COLUMN_CATEGORY = "Category";
     static final String COLUMN_RUNNING_FT_WALL = "Running Ft Wall";

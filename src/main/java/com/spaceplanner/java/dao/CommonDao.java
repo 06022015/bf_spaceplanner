@@ -37,6 +37,8 @@ public interface CommonDao extends BaseDao{
     
     List<FloorDesignDetailsEntity> getFloorDesignDetails(Long floorId);
 
+    List<FloorDesignDetailsEntity> getFloorDesignDetails(Long storeId, Long floorId, Long brandId, String floorNumber, Status status, Integer version);
+
     void deleteFloorDetails(Long floorId, int version);
 
     StoreEntity getStoreByName(String storeName);
@@ -44,6 +46,8 @@ public interface CommonDao extends BaseDao{
     BrandEntity getBrandByNameAndCode(String code, String name);
 
      List<BrandEntity> getBrands();
+
+     BrandEntity getBrandById(Long id);
 
     boolean isValidBrandDesign(Long floorId);
 

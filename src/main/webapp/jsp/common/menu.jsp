@@ -28,7 +28,7 @@
                         </ul>
                     </div>
                 </li>
-                <li><a href="<c:url value="/comm/floor/report.html"/>">Report</a></li>
+                <li><a href="<c:url value="/comm/report.html"/>">Report</a></li>
 
 
                 <security:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SPACE_PLANNER')">
