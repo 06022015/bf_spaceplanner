@@ -536,7 +536,8 @@ table td, table th{
 }
 
 #logo{
-    background: url(../images/central_logo_red_bckgrnd.png);
+    /*background: url(../images/central_logo_red_bckgrnd.png);*/
+    background: url(../images/bf_logo.png);
     background-size: 100% 71px;
     background-repeat: no-repeat;
     float: right;

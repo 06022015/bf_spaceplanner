@@ -6,13 +6,13 @@
     <link href="<c:url value="/style/jquery-ui.css"/>" rel='stylesheet' type='text/css'/>
     <link href="<c:url value="/style/dataTables.jqueryui.css"/>" rel='stylesheet' type='text/css'/>
     <link href="<c:url value="/style/theme.css"/>" rel='stylesheet' type='text/css'/>
+    <link href="<c:url value="/style/select2.min.css"/>" rel='stylesheet' type='text/css'/>
     <script type="application/x-javascript" src="<c:url value="/js/jquery-2.1.4.js" />"></script>
     <script type="application/x-javascript" src="<c:url value="/js/jquery-ui.min.js" />"></script>
     <script type="application/x-javascript" src="<c:url value="/js/jquery.dataTables.min.js" />"></script>
     <script type="application/x-javascript" src="<c:url value="/js/dataTables.jqueryui.js" />"></script>
     <script type="text/javascript" src="<c:url value="/js/common.js" />"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
+    <script src="<c:url value="/js/select2.min.js" />"></script>
     <title><decorator:getProperty property="page.titleText"/><decorator:getProperty property="page.pageTitle"/></title>
     <decorator:head/>
 </head>

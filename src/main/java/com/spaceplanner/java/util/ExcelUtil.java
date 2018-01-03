@@ -363,6 +363,7 @@ public class ExcelUtil implements Constants {
         spaceMasterDTO.setSisDetails(getCellValue(row, columnIndexMap.get(COLUMN_SIS_DETAILS)));
         spaceMasterDTO.setLocation(getCellValue(row, columnIndexMap.get(COLUMN_LOCATION)));
         String brand = getCellValue(row, columnIndexMap.get(COLUMN_BRAND));
+        logger.debug(brand);
         if(StringUtil.isNotNullOrEmpty(brand)){
             String[] brandCodeAndName = brand.split("-");
             spaceMasterDTO.setBrandCode(brand.substring(0,brand.indexOf("-")));

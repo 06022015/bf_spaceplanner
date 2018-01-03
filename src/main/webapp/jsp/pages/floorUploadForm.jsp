@@ -24,7 +24,7 @@
             <div class="grid_row">
                 <div class="grid_column">
                     <label class="grid_level"><fmt:message key="label.Store"/>:</label>
-                    <form:select path="storeId" onchange="loadFloor(this,'/comm/floor/upload/form.html?isRequest=${isRequest}')" required="required">
+                    <form:select path="storeId" id="upload_store_id" onchange="loadFloor(this,'/comm/floor/upload/form.html?isRequest=${isRequest}')" required="required">
                         <form:option value=""><fmt:message key="label.Select.Store"/></form:option>
                         <c:forEach items="${stores}" var="str">
                             <c:choose>
@@ -40,7 +40,7 @@
                 </div>
                 <div class="grid_column">
                     <label class="grid_level"><fmt:message key="label.Floor"/>:</label>
-                    <form:select path="floorId" required="required">
+                    <form:select path="floorId" id="upload_floor_id" required="required">
                         <form:option value=""><fmt:message key="label.Select.Floor"/></form:option>
                         <c:forEach items="${floors}" var="flr">
                             <c:choose>

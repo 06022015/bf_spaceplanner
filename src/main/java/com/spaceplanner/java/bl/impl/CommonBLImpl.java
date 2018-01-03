@@ -374,6 +374,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             logger.error("Unable to process excel:-" +e);
             status.setError(commonUtil.getText("error.failed.to.process.brand.details", status.getLocale()));
         }catch (Exception e){
+            e.printStackTrace();
             logger.error("Something went wrong:-" +e);
             status.setError(commonUtil.getText("error.file.have.bad.data", status.getLocale()));
         }
