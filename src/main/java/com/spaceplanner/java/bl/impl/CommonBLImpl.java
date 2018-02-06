@@ -31,6 +31,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.PostLoad;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -69,7 +70,12 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
     @Autowired
     private SpacePlannerBeans spacePlannerBeans;
 
+    private boolean readLocation = false;
 
+    @PostLoad
+    public void initProp(){
+        this.readLocation = CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true");
+    }
 
     public void executeSQLQueryUpdate(String sqlQuery) {
         commonDao.executeSQLQueryUpdate(sqlQuery);
@@ -242,16 +248,20 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
 
     private void processSpaceDesign(FloorEntity floorEntity, MultipartFile designDXFFile, SpacePlannerResponseStatus status) throws IOException, ParseException {
         logger.info("Processing space design...");
-        boolean readLocation = CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true");
+        //boolean readLocation = CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true");
         DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream(), false, readLocation);
         List<DesignDetail> designDetails = designApi.getDesignDetails();
         List<FloorDesignDetailsEntity> floorDesignDetailList = new ArrayList<FloorDesignDetailsEntity>();
         Map<String, CategoryDivision> categoryDivisionMap = commonDao.getCategoryDivision();
         double designRetailArea = 0.00;
+        int count = 1;
         for (DesignDetail designDetail : designDetails) {
             FloorDesignDetailsEntity floorDesignDetail = new FloorDesignDetailsEntity();
             floorDesignDetail.setFloor(floorEntity);
-            floorDesignDetail.setLocationCode(designDetail.getLocation());
+            if(readLocation)
+                floorDesignDetail.setLocationCode(designDetail.getLocation());
+            else
+                floorDesignDetail.setLocationCode(count+"");
             floorDesignDetail.setDesignArea(designDetail.getArea());
             boolean isNullOrInvalidCategory=false;
             if(StringUtil.isNotNullOrEmpty(designDetail.getCategory())){
@@ -272,6 +282,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             if (null != floorDesignDetail.getDesignArea())
                 designRetailArea = designRetailArea + floorDesignDetail.getDesignArea();
             floorDesignDetailList.add(floorDesignDetail);
+            count++;
         }
 
         if (floorEntity.getDesignStatus().equals(DesignStatus.Space_Design_Uploaded)) {
@@ -292,7 +303,12 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             if(null != designDetails && designDetails.size()>0){
                 DesignDetail selected = null;
                 for(DesignDetail designDetail : designDetails){
-                    if(!processed.contains(designDetail) && null != floorDesignDetail.getBrand()
+                    if(readLocation){
+                        if(designDetail.getLocation().equals(floorDesignDetail.getLocationCode())){
+                            selected = designDetail;
+                            break;
+                        }
+                    }else if(!processed.contains(designDetail) && null != floorDesignDetail.getBrand()
                             && StringUtil.isNotNullOrEmpty(designDetail.getBrand())
                             && floorDesignDetail.getBrand().getName().equals(designDetail.getBrand())){
                         selected = designDetail;
@@ -383,13 +399,15 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
 
     private void processMaster(MultipartFile multipartFile, Long floorId, SpacePlannerResponseStatus status) throws IOException, NumberFormatException {
         List<FloorDesignDetailsEntity> floorDesignDetails = commonDao.getFloorDesignDetails(floorId);
-        Map<String, List<SpaceMasterDTO>> catAreaMap = ExcelUtil.readAsCategoryArea(multipartFile.getInputStream());
+        //Map<String, List<SpaceMasterDTO>> catAreaMap = ExcelUtil.readAsCategoryArea(multipartFile.getInputStream());
+        Map<String, SpaceMasterDTO> spaceMasterMap = ExcelUtil.read(multipartFile.getInputStream());
         Map<String, BrandEntity> brandMap = convertBrandListIntoMap(commonDao.getBrands());
         String error="";
         boolean isValid=true;
-        Set<SpaceMasterDTO> processed = new HashSet<SpaceMasterDTO>();
+        //Set<SpaceMasterDTO> processed = new HashSet<SpaceMasterDTO>();
         for (FloorDesignDetailsEntity floorDesignDetail : floorDesignDetails) {
-            SpaceMasterDTO spaceMasterDTO = null;//spaceMasterMap.get(floorDesignDetail.getLocationCode());
+            SpaceMasterDTO spaceMasterDTO = spaceMasterMap.get(floorDesignDetail.getLocationCode());
+            /*SpaceMasterDTO spaceMasterDTO = null;//spaceMasterMap.get(floorDesignDetail.getLocationCode());
             List<SpaceMasterDTO> catSpaceMasterDTOS = catAreaMap.get(floorDesignDetail.getCategory()+"-"+floorDesignDetail.getDesignArea());
             if(null != catSpaceMasterDTOS){
                 for(SpaceMasterDTO spaceMaster :  catSpaceMasterDTOS){
@@ -401,7 +419,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
                         processed.add(spaceMaster);
                     }
                 }
-            }
+            }*/
             if (null != spaceMasterDTO) {
                 if((StringUtil.isNotNullOrEmpty(spaceMasterDTO.getBrandCode()))
                         ||(StringUtil.isNotNullOrEmpty(spaceMasterDTO.getBrandName()))){

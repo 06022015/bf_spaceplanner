@@ -48,6 +48,7 @@ public interface Constants {
     static final String COLUMN_RUNNING_FT_WALL = "Running Ft Wall";
     static final String COLUMN_SIS_DETAILS = "SIS Details";
     static final String COLUMN_LOCATION = "Location";
+    static final String COLUMN_ID = "Id";
     static final String COLUMN_BRAND_CODE = "Brand Code";
     static final String COLUMN_DESIGN_BRAND_NAME = "Design Brand Name";
     static final String COLUMN_BRAND_NAME = "Brand Name";

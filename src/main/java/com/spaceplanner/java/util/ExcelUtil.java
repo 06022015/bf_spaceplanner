@@ -361,7 +361,7 @@ public class ExcelUtil implements Constants {
         spaceMasterDTO.setCategory(getCellValue(row, columnIndexMap.get(COLUMN_CATEGORY)));
                     /*spaceMasterDTO.setRunningFtWall(getCellValue(row, columnIndexMap.get(COLUMN_RUNNING_FT_WALL)));*/
         spaceMasterDTO.setSisDetails(getCellValue(row, columnIndexMap.get(COLUMN_SIS_DETAILS)));
-        spaceMasterDTO.setLocation(getCellValue(row, columnIndexMap.get(COLUMN_LOCATION)));
+        spaceMasterDTO.setLocation(getCellValue(row, columnIndexMap.get(getColumnLocation())));
         String brand = getCellValue(row, columnIndexMap.get(COLUMN_BRAND));
         logger.debug(brand);
         if(StringUtil.isNotNullOrEmpty(brand)){
@@ -385,8 +385,8 @@ public class ExcelUtil implements Constants {
     }
 
     public static Map<String, SpaceMasterDTO> read(InputStream inputStream) throws IOException, NumberFormatException {
+        Map<String, SpaceMasterDTO> dataMap = new HashMap<String, SpaceMasterDTO>();
         try {
-            Map<String, SpaceMasterDTO> dataMap = new HashMap<String, SpaceMasterDTO>();
             Map<String, Integer> columnIndexMap = new HashMap<String, Integer>();
             XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
             XSSFSheet sheet = workbook.getSheetAt(0);
@@ -409,7 +409,7 @@ public class ExcelUtil implements Constants {
                     spaceMasterDTO.setCategory(getCellValue(row, columnIndexMap.get(COLUMN_CATEGORY)));
                     /*spaceMasterDTO.setRunningFtWall(getCellValue(row, columnIndexMap.get(COLUMN_RUNNING_FT_WALL)));*/
                     spaceMasterDTO.setSisDetails(getCellValue(row, columnIndexMap.get(COLUMN_SIS_DETAILS)));
-                    spaceMasterDTO.setLocation(getCellValue(row, columnIndexMap.get(COLUMN_LOCATION)));
+                    spaceMasterDTO.setLocation(getCellValue(row, columnIndexMap.get(getColumnLocation())));
                     String brand = getCellValue(row, columnIndexMap.get(COLUMN_BRAND));
                     if(StringUtil.isNotNullOrEmpty(brand)){
                         String[] brandCodeAndName = brand.split("-");
@@ -430,14 +430,14 @@ public class ExcelUtil implements Constants {
                     dataMap.put(spaceMasterDTO.getLocation(), spaceMasterDTO);
                 }
             }
-            return dataMap;
+            //return dataMap;
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             if (null != inputStream)
                 inputStream.close();
         }
-        return null;
+        return dataMap;
     }
     
     private static Double getCellValueAsDouble(String value){
@@ -482,7 +482,7 @@ public class ExcelUtil implements Constants {
         nameSet.add(Constants.COLUMN_CATEGORY);
         nameSet.add(Constants.COLUMN_RUNNING_FT_WALL);
         nameSet.add(Constants.COLUMN_SIS_DETAILS);
-        nameSet.add(Constants.COLUMN_LOCATION);
+        nameSet.add(getColumnLocation());
         nameSet.add(Constants.COLUMN_BRAND);
         nameSet.add(Constants.COLUMN_BRAND_CODE);
         nameSet.add(Constants.COLUMN_BRAND_NAME);
@@ -517,7 +517,7 @@ public class ExcelUtil implements Constants {
         columnValueMap.put(COLUMN_CATEGORY, floorDesignDetail.getCategory());
         columnValueMap.put(COLUMN_RUNNING_FT_WALL, floorDesignDetail.getDesignRunningFtWall());
         columnValueMap.put(COLUMN_SIS_DETAILS, floorDesignDetail.getSisDetails());
-        columnValueMap.put(COLUMN_LOCATION, floorDesignDetail.getLocationCode());
+        columnValueMap.put(getColumnLocation(), floorDesignDetail.getLocationCode());
         if (null != floorDesignDetail.getBrand()) {
             columnValueMap.put(COLUMN_BRAND, floorDesignDetail.getBrand().getBrand());
             /*columnValueMap.put(COLUMN_BRAND_CODE, floorDesignDetail.getBrand().getCode());
@@ -537,6 +537,10 @@ public class ExcelUtil implements Constants {
         return columnValueMap;
     }
 
+    private static String getColumnLocation(){
+        boolean readLocation = CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true");
+        return readLocation ? COLUMN_LOCATION :COLUMN_ID;
+    }
 
     public static List<String> getColumnNameList(DesignStatus designStatus) {
         List<String> columnNameList = new ArrayList<String>();
@@ -546,9 +550,7 @@ public class ExcelUtil implements Constants {
         columnNameList.add(COLUMN_CATEGORY);
         /*columnNameList.add(COLUMN_RUNNING_FT_WALL);*/
         columnNameList.add(COLUMN_SIS_DETAILS);
-        boolean readLocation = CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true");
-        if(readLocation)
-            columnNameList.add(COLUMN_LOCATION);
+        columnNameList.add(getColumnLocation());
         columnNameList.add(COLUMN_AREA);
         columnNameList.add(COLUMN_BRAND);
         /*columnNameList.add(COLUMN_BRAND_CODE);
@@ -576,7 +578,7 @@ public class ExcelUtil implements Constants {
         columnNameList.add(COLUMN_CATEGORY);
         *//*columnNameList.add(COLUMN_RUNNING_FT_WALL);*//*
         columnNameList.add(COLUMN_SIS_DETAILS);
-        columnNameList.add(COLUMN_LOCATION);
+        columnNameList.add(getColumnLocation());
         columnNameList.add(COLUMN_AREA);
         if (designStatus.equals(DesignStatus.Brand_Master_Uploaded)
                 || designStatus.equals(DesignStatus.Brand_Master_Published)

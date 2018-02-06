@@ -8,7 +8,7 @@ package com.spaceplanner.java.dto;
  * To change this template use File | Settings | File Templates.
  */
 public class SpaceMasterDTO {
-    
+
     private String division;
     private String category;
     private String runningFtWall;
