@@ -30,7 +30,7 @@ public class BrandEntity {
         this.id = id;
     }
 
-    @Column(unique = true, nullable = false)
+    @Column( nullable = false)
     public String getName() {
         return name;
     }

@@ -135,7 +135,15 @@ public class CommonDaoImpl extends BaseDaoImpl implements CommonDao {
         String hql = "delete from FloorDesignDetailsEntity fdd where fdd.floor.id in (from FloorEntity f where f.id=:floorId and f.designStatus=:designStatus)";
         Query query = getCurrentSession().createQuery(hql);
         query.setLong("floorId", floorId);
-        query.setParameter("designStatus", DesignStatus.Space_Design_Uploaded);
+        query.setParameter("designStatus", DesignStatus.Design_Uploaded);
+        query.executeUpdate();
+    }
+
+    public void deleteFloorDetails(Long floorId, int version, DesignStatus designStatus) {
+        String hql = "delete from FloorDesignDetailsEntity fdd where fdd.floor.id in (from FloorEntity f where f.id=:floorId and f.designStatus=:designStatus)";
+        Query query = getCurrentSession().createQuery(hql);
+        query.setLong("floorId", floorId);
+        query.setParameter("designStatus", designStatus);
         query.executeUpdate();
     }
 
@@ -155,6 +163,12 @@ public class CommonDaoImpl extends BaseDaoImpl implements CommonDao {
         return (BrandEntity)criteria.uniqueResult();
     }
 
+    public BrandEntity getBrandByCode(String code) {
+        Criteria criteria = getCurrentSession().createCriteria(BrandEntity.class)
+                .add(Restrictions.eq("code", code.trim()).ignoreCase());
+        return (BrandEntity)criteria.uniqueResult();
+    }
+
 
     public List<BrandEntity> getBrands() {
         Criteria criteria = getCurrentSession().createCriteria(BrandEntity.class);
@@ -170,7 +184,8 @@ public class CommonDaoImpl extends BaseDaoImpl implements CommonDao {
 
 
     public boolean isValidBrandDesign(Long floorId){
-        String hql = "from FloorDesignDetailsEntity fdd where fdd.floor.id =:floorId and  fdd.brand != null and fdd.designBrandName != fdd.brand.name";
+        //String hql = "from FloorDesignDetailsEntity fdd where fdd.floor.id =:floorId and fdd.designBrandName != null and (fdd.brand = null or fdd.designBrandName != fdd.brand.name)";
+        String hql = "from FloorDesignDetailsEntity fdd where fdd.floor.id =:floorId and fdd.designBrandName != null and fdd.brand = null";
         Query query = getCurrentSession().createQuery(hql);
         query.setLong("floorId", floorId);
         List<FloorDesignDetailsEntity> floorDesignDetailsList = query.list();

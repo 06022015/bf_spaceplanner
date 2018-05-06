@@ -278,7 +278,7 @@ public class CommonController extends BaseController {
         SpacePlannerResponseStatus status = new SpacePlannerResponseStatus();
         floorUploadForm.setUserEntity(getCurrentUsers());
         if(floorUploadForm.getChangeRequestType().equals(ChangeRequestType.NEW)){
-            commonBL.save(floorUploadForm, status);
+            //commonBL.save(floorUploadForm, status);//TODO:Excel upload no more required
             floorUploadForm.setRequest(false);
         }else{
             commonBL.saveChangeRequest(floorUploadForm, status);

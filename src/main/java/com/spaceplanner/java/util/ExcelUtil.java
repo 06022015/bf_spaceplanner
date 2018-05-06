@@ -114,7 +114,7 @@ public class ExcelUtil implements Constants {
             columnNameList.add(COLUMN_FLOOR);
             if(isArchive)
                 columnNameList.add(COLUMN_VERSION);
-            columnNameList.addAll(getColumnNameList(DesignStatus.Brand_Master_Uploaded));
+            columnNameList.addAll(getColumnNameList(DesignStatus.Design_Published));
             for (int i = 0; i < columnNameList.size(); i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columnNameList.get(i));
@@ -134,7 +134,7 @@ public class ExcelUtil implements Constants {
                 Map<String, Object> floorDetailMap = getFloorDetails(floorDesignDetail);
                 XSSFRow row = sheet.createRow(rowCount);
                 int index=0;
-                if (floorDesignDetail.getFloor().getDesignStatus().equals(DesignStatus.Brand_Design_Uploaded)){
+                if (floorDesignDetail.getFloor().getDesignStatus().equals(DesignStatus.Design_Uploaded)){
                     row.createCell(index).setCellValue(floorDetailMap.get(columnNameList.get(index))+"");
                     if (floorDesignDetail.isValid())
                         row.getCell(index).setCellStyle(matchCellStyle);
@@ -204,7 +204,7 @@ public class ExcelUtil implements Constants {
                 Map<String, Object> floorDetailMap = getFloorDetails(floorDesignDetail);
                 XSSFRow row = sheet.createRow(rowCount);
                 int index=0;
-                if (floor.getDesignStatus().equals(DesignStatus.Brand_Design_Uploaded)){
+                if (floor.getDesignStatus().equals(DesignStatus.Design_Uploaded)){
                     row.createCell(index).setCellValue("");
                     if (floorDesignDetail.isValid())
                         row.getCell(index).setCellStyle(matchCellStyle);
@@ -360,7 +360,7 @@ public class ExcelUtil implements Constants {
         spaceMasterDTO.setDivision(getCellValue(row, columnIndexMap.get(COLUMN_DIVISION)));
         spaceMasterDTO.setCategory(getCellValue(row, columnIndexMap.get(COLUMN_CATEGORY)));
                     /*spaceMasterDTO.setRunningFtWall(getCellValue(row, columnIndexMap.get(COLUMN_RUNNING_FT_WALL)));*/
-        spaceMasterDTO.setSisDetails(getCellValue(row, columnIndexMap.get(COLUMN_SIS_DETAILS)));
+        /*spaceMasterDTO.setSisDetails(getCellValue(row, columnIndexMap.get(COLUMN_SIS_DETAILS)));*/
         spaceMasterDTO.setLocation(getCellValue(row, columnIndexMap.get(getColumnLocation())));
         String brand = getCellValue(row, columnIndexMap.get(COLUMN_BRAND));
         logger.debug(brand);
@@ -372,7 +372,7 @@ public class ExcelUtil implements Constants {
         //spaceMasterDTO.setBrandCode(getCellValue(row, columnIndexMap.get(COLUMN_BRAND_CODE)));
         //spaceMasterDTO.setBrandName(getCellValue(row, columnIndexMap.get(COLUMN_BRAND_NAME)));
         spaceMasterDTO.setArea(getCellValueAsDouble(getCellValue(row,columnIndexMap.get(COLUMN_AREA))));
-        spaceMasterDTO.setMG(getCellValue(row, columnIndexMap.get(COLUMN_MG)));
+        /*spaceMasterDTO.setMG(getCellValue(row, columnIndexMap.get(COLUMN_MG)));
         spaceMasterDTO.setPSFPD(getCellValue(row, columnIndexMap.get(COLUMN_PSFPD)));
         spaceMasterDTO.setSales(getCellValue(row, columnIndexMap.get(COLUMN_SALES)));
         spaceMasterDTO.setGMV(getCellValue(row, columnIndexMap.get(COLUMN_GMV)));
@@ -380,7 +380,7 @@ public class ExcelUtil implements Constants {
         spaceMasterDTO.setVistexMargin(getCellValue(row, columnIndexMap.get(COLUMN_VISTEX_MARGIN)));
         spaceMasterDTO.setGMROF(getCellValue(row, columnIndexMap.get(COLUMN_GMROF)));
         spaceMasterDTO.setSecurityDeposit(getCellValueAsDouble(getCellValue(row, columnIndexMap.get(COLUMN_SECURITY_DEPOSIT))));
-        spaceMasterDTO.setSdAmount(getCellValueAsDouble(getCellValue(row, columnIndexMap.get(COLUMN_SD_AMOUNT))));
+        spaceMasterDTO.setSdAmount(getCellValueAsDouble(getCellValue(row, columnIndexMap.get(COLUMN_SD_AMOUNT))));*/
         return spaceMasterDTO;
     }
 
@@ -408,7 +408,7 @@ public class ExcelUtil implements Constants {
                     spaceMasterDTO.setDivision(getCellValue(row, columnIndexMap.get(COLUMN_DIVISION)));
                     spaceMasterDTO.setCategory(getCellValue(row, columnIndexMap.get(COLUMN_CATEGORY)));
                     /*spaceMasterDTO.setRunningFtWall(getCellValue(row, columnIndexMap.get(COLUMN_RUNNING_FT_WALL)));*/
-                    spaceMasterDTO.setSisDetails(getCellValue(row, columnIndexMap.get(COLUMN_SIS_DETAILS)));
+                    /*spaceMasterDTO.setSisDetails(getCellValue(row, columnIndexMap.get(COLUMN_SIS_DETAILS)));*/
                     spaceMasterDTO.setLocation(getCellValue(row, columnIndexMap.get(getColumnLocation())));
                     String brand = getCellValue(row, columnIndexMap.get(COLUMN_BRAND));
                     if(StringUtil.isNotNullOrEmpty(brand)){
@@ -418,7 +418,7 @@ public class ExcelUtil implements Constants {
                     }
                     //spaceMasterDTO.setBrandCode(getCellValue(row, columnIndexMap.get(COLUMN_BRAND_CODE)));
                     //spaceMasterDTO.setBrandName(getCellValue(row, columnIndexMap.get(COLUMN_BRAND_NAME)));
-                    spaceMasterDTO.setMG(getCellValue(row, columnIndexMap.get(COLUMN_MG)));
+                    /*spaceMasterDTO.setMG(getCellValue(row, columnIndexMap.get(COLUMN_MG)));
                     spaceMasterDTO.setPSFPD(getCellValue(row, columnIndexMap.get(COLUMN_PSFPD)));
                     spaceMasterDTO.setSales(getCellValue(row, columnIndexMap.get(COLUMN_SALES)));
                     spaceMasterDTO.setGMV(getCellValue(row, columnIndexMap.get(COLUMN_GMV)));
@@ -426,7 +426,7 @@ public class ExcelUtil implements Constants {
                     spaceMasterDTO.setVistexMargin(getCellValue(row, columnIndexMap.get(COLUMN_VISTEX_MARGIN)));
                     spaceMasterDTO.setGMROF(getCellValue(row, columnIndexMap.get(COLUMN_GMROF)));
                     spaceMasterDTO.setSecurityDeposit(getCellValueAsDouble(getCellValue(row, columnIndexMap.get(COLUMN_SECURITY_DEPOSIT))));
-                    spaceMasterDTO.setSdAmount(getCellValueAsDouble(getCellValue(row, columnIndexMap.get(COLUMN_SD_AMOUNT))));
+                    spaceMasterDTO.setSdAmount(getCellValueAsDouble(getCellValue(row, columnIndexMap.get(COLUMN_SD_AMOUNT))));*/
                     dataMap.put(spaceMasterDTO.getLocation(), spaceMasterDTO);
                 }
             }
@@ -487,7 +487,7 @@ public class ExcelUtil implements Constants {
         nameSet.add(Constants.COLUMN_BRAND_CODE);
         nameSet.add(Constants.COLUMN_BRAND_NAME);
         nameSet.add(Constants.COLUMN_AREA);
-        nameSet.add(Constants.COLUMN_MG);
+        /*nameSet.add(Constants.COLUMN_MG);
         nameSet.add(Constants.COLUMN_PSFPD);
         nameSet.add(Constants.COLUMN_SALES);
         nameSet.add(Constants.COLUMN_GMV);
@@ -495,7 +495,7 @@ public class ExcelUtil implements Constants {
         nameSet.add(Constants.COLUMN_VISTEX_MARGIN);
         nameSet.add(Constants.COLUMN_GMROF);
         nameSet.add(Constants.COLUMN_SECURITY_DEPOSIT);
-        nameSet.add(Constants.COLUMN_SD_AMOUNT);
+        nameSet.add(Constants.COLUMN_SD_AMOUNT);*/
         return nameSet;
     }
 
@@ -516,7 +516,7 @@ public class ExcelUtil implements Constants {
             columnValueMap.put(COLUMN_DIVISION, floorDesignDetail.getCategoryDivision().getDivision());
         columnValueMap.put(COLUMN_CATEGORY, floorDesignDetail.getCategory());
         columnValueMap.put(COLUMN_RUNNING_FT_WALL, floorDesignDetail.getDesignRunningFtWall());
-        columnValueMap.put(COLUMN_SIS_DETAILS, floorDesignDetail.getSisDetails());
+        /*columnValueMap.put(COLUMN_SIS_DETAILS, floorDesignDetail.getSisDetails());*/
         columnValueMap.put(getColumnLocation(), floorDesignDetail.getLocationCode());
         if (null != floorDesignDetail.getBrand()) {
             columnValueMap.put(COLUMN_BRAND, floorDesignDetail.getBrand().getBrand());
@@ -525,7 +525,7 @@ public class ExcelUtil implements Constants {
         }
         columnValueMap.put(COLUMN_DESIGN_BRAND_NAME, floorDesignDetail.getDesignBrandName());
         columnValueMap.put(COLUMN_AREA, floorDesignDetail.getDesignArea());
-        columnValueMap.put(COLUMN_MG, floorDesignDetail.getMG());
+        /*columnValueMap.put(COLUMN_MG, floorDesignDetail.getMG());
         columnValueMap.put(COLUMN_PSFPD, floorDesignDetail.getPSFPD());
         columnValueMap.put(COLUMN_SALES, floorDesignDetail.getSales());
         columnValueMap.put(COLUMN_GMV, floorDesignDetail.getGMV());
@@ -533,7 +533,7 @@ public class ExcelUtil implements Constants {
         columnValueMap.put(COLUMN_VISTEX_MARGIN, floorDesignDetail.getVistexMargin());
         columnValueMap.put(COLUMN_GMROF, floorDesignDetail.getGMROF());
         columnValueMap.put(COLUMN_SECURITY_DEPOSIT, floorDesignDetail.getSecurityDeposit());
-        columnValueMap.put(COLUMN_SD_AMOUNT, floorDesignDetail.getSdAmount());
+        columnValueMap.put(COLUMN_SD_AMOUNT, floorDesignDetail.getSdAmount());*/
         return columnValueMap;
     }
 
@@ -544,7 +544,7 @@ public class ExcelUtil implements Constants {
 
     public static List<String> getColumnNameList(DesignStatus designStatus) {
         List<String> columnNameList = new ArrayList<String>();
-        if (designStatus.equals(DesignStatus.Brand_Design_Uploaded))
+        if (designStatus.equals(DesignStatus.Design_Uploaded))
             columnNameList.add(COLUMN_STATUS);
         columnNameList.add(COLUMN_DIVISION);
         columnNameList.add(COLUMN_CATEGORY);
@@ -555,11 +555,11 @@ public class ExcelUtil implements Constants {
         columnNameList.add(COLUMN_BRAND);
         /*columnNameList.add(COLUMN_BRAND_CODE);
         columnNameList.add(COLUMN_BRAND_NAME);*/
-        if (designStatus.equals(DesignStatus.Brand_Design_Uploaded)) {
+        if (designStatus.equals(DesignStatus.Design_Uploaded)) {
             /*columnNameList.add(COLUMN_DESIGN_BRAND_CODE);*/
             columnNameList.add(COLUMN_DESIGN_BRAND_NAME);
         }
-        columnNameList.add(COLUMN_MG);
+        /*columnNameList.add(COLUMN_MG);
         columnNameList.add(COLUMN_PSFPD);
         columnNameList.add(COLUMN_SALES);
         columnNameList.add(COLUMN_GMV);
@@ -567,7 +567,7 @@ public class ExcelUtil implements Constants {
         columnNameList.add(COLUMN_VISTEX_MARGIN);
         columnNameList.add(COLUMN_GMROF);
         columnNameList.add(COLUMN_SECURITY_DEPOSIT);
-        columnNameList.add(COLUMN_SD_AMOUNT);
+        columnNameList.add(COLUMN_SD_AMOUNT);*/
         return columnNameList;
     }
 

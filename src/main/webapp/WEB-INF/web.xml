@@ -5,6 +5,21 @@
 		  http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          version="2.5">
 
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class> <!-- front end flow url pattern, help to reduce re wirting dopost , do get , call req.rediret from servlet to jsp** in struts it is action servlet in jsf it is facet servlet -->
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>*.html</url-pattern>
+    </servlet-mapping>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class><!-- creates map <url>,<bean method> i.e. spaceplanner scan and send the same to container   -->
+    </listener>
+
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>
@@ -26,6 +41,7 @@
     <filter>
         <filter-name>springSecurityFilterChain</filter-name>
         <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <!--<filter-class>org.springframework.security.web.context.SecurityContextPersistenceFilter</filter-class>-->
     </filter>
     <filter-mapping>
         <filter-name>springSecurityFilterChain</filter-name>
@@ -43,20 +59,9 @@
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>ERROR</dispatcher>
     </filter-mapping>
-    <listener>
-        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class><!-- creates map <url>,<bean method> i.e. spaceplanner scan and send the same to container   -->
-    </listener>
 
-    <servlet>
-        <servlet-name>dispatcher</servlet-name>
-        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class> <!-- front end flow url pattern, help to reduce re wirting dopost , do get , call req.rediret from servlet to jsp** in struts it is action servlet in jsf it is facet servlet -->
-        <load-on-startup>1</load-on-startup>
-    </servlet>
 
-    <servlet-mapping>
-        <servlet-name>dispatcher</servlet-name>
-        <url-pattern>*.html</url-pattern>
-    </servlet-mapping>
+
 
     <session-config>
         <session-timeout>30</session-timeout>

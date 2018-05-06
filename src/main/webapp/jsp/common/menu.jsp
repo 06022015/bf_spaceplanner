@@ -20,10 +20,10 @@
                                         key="label.Upload"/>&nbsp;<fmt:message key="label.Design"/></a></li>
                             </security:authorize>
 
-                            <security:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SPACE_PLANNER')">
+                            <%--<security:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SPACE_PLANNER')">
                                 <li><a href="<c:url value="/comm/floor/upload/form.html?isRequest=false"/>"><fmt:message
                                         key="label.Upload.Enrichment"/></a></li>
-                            </security:authorize>
+                            </security:authorize>--%>
 
                         </ul>
                     </div>
@@ -31,9 +31,9 @@
                 <li><a href="<c:url value="/comm/report.html"/>">Report</a></li>
 
 
-                <security:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SPACE_PLANNER')">
+                <%--<security:authorize access="hasAnyRole('ROLE_ADMIN','ROLE_SPACE_PLANNER')">
                     <li><a href="<c:url value="/comm/floor/upload/form.html?isRequest=true"/>">Request</a></li>
-                </security:authorize>
+                </security:authorize>--%>
 
                 <security:authorize access="hasRole('ROLE_ADMIN')">
                     <li class="drop">

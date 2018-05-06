@@ -60,7 +60,7 @@ public class NotifyUserTask {
                 isNotificationSend = false;
             }
         }
-        if (designStatus.equals(DesignStatus.Brand_Design_published))
+        if (designStatus.equals(DesignStatus.Design_Accepted))
             notifyAdmin(map);
         if (isNotificationSend)
             logger.info("Sent notification mail to the respective user!");
@@ -84,15 +84,31 @@ public class NotifyUserTask {
         }
     }
 
-    private List<UserEntity> getUsersForNotification(DesignStatus designStatus) {
+    /*private List<UserEntity> getUsersForNotification(DesignStatus designStatus) {
         List<UserEntity> userList = new ArrayList<UserEntity>();
         if (designStatus.equals(DesignStatus.Master_Published)
                 || designStatus.equals(DesignStatus.Space_Design_Published)
                 || designStatus.equals(DesignStatus.Brand_Master_Published)
-                || designStatus.equals(DesignStatus.Brand_Design_published)) {
+                || designStatus.equals(DesignStatus.Brand_Design_published)
+                || designStatus.equals(DesignStatus.Design_Accepted)
+                || designStatus.equals(DesignStatus.Design_Rejected)) {
             userList.addAll(userDao.getUserByRole(Role.ROLE_DESIGNER));
         } else if (designStatus.equals(DesignStatus.Space_Design_Uploaded)
                 || designStatus.equals(DesignStatus.Brand_Design_Uploaded)) {
+            userList.addAll(userDao.getUserByRole(Role.ROLE_SPACE_PLANNER));
+        } *//*else if (designStatus.equals(DesignStatus.Enrichment_Uploaded)) {
+            userList.addAll(userDao.getUserByRole(Role.ROLE_ADMIN));
+        }*//*
+        return userList;
+    }*/
+
+    private List<UserEntity> getUsersForNotification(DesignStatus designStatus) {
+        List<UserEntity> userList = new ArrayList<UserEntity>();
+        if (designStatus.equals(DesignStatus.Master_Published)
+                || designStatus.equals(DesignStatus.Design_Accepted)
+                || designStatus.equals(DesignStatus.Design_Rejected)) {
+            userList.addAll(userDao.getUserByRole(Role.ROLE_DESIGNER));
+        } else if (designStatus.equals(DesignStatus.Design_Published)) {
             userList.addAll(userDao.getUserByRole(Role.ROLE_SPACE_PLANNER));
         } /*else if (designStatus.equals(DesignStatus.Enrichment_Uploaded)) {
             userList.addAll(userDao.getUserByRole(Role.ROLE_ADMIN));
@@ -105,9 +121,11 @@ public class NotifyUserTask {
 
         Map<DesignStatus, String> subjectMap = new HashMap<DesignStatus, String>();
         subjectMap.put(DesignStatus.Master_Published, commonUtil.getText("email.notification.subject.floor.master", objects));
-        subjectMap.put(DesignStatus.Space_Design_Published, commonUtil.getText("email.notification.subject.floor.space.design", objects));
-        subjectMap.put(DesignStatus.Brand_Master_Published, commonUtil.getText("email.notification.subject.floor.brand.master", objects));
-        subjectMap.put(DesignStatus.Brand_Design_published, commonUtil.getText("email.notification.subject.floor.brand.design", objects));
+        subjectMap.put(DesignStatus.Design_Published, commonUtil.getText("email.notification.subject.floor.design", objects));
+        subjectMap.put(DesignStatus.Design_Accepted, commonUtil.getText("email.notification.subject.floor.design.accepted", objects));
+        subjectMap.put(DesignStatus.Design_Rejected, commonUtil.getText("email.notification.subject.floor.design.rejected", objects));
+        //subjectMap.put(DesignStatus.Brand_Master_Published, commonUtil.getText("email.notification.subject.floor.brand.master", objects));
+        //subjectMap.put(DesignStatus.Brand_Design_published, commonUtil.getText("email.notification.subject.floor.brand.design", objects));
         //subjectMap.put(DesignStatus.Enrichment_Uploaded, commonUtil.getText("email.notification.subject.floor.enrich", objects));
         return subjectMap.get(designStatus);
     }
@@ -115,9 +133,11 @@ public class NotifyUserTask {
     private String getContent(DesignStatus designStatus, Object objects[]) {
         Map<DesignStatus, String> subjectMap = new HashMap<DesignStatus, String>();
         subjectMap.put(DesignStatus.Master_Published, commonUtil.getText("email.notification.content.floor.master", objects));
-        subjectMap.put(DesignStatus.Space_Design_Published, commonUtil.getText("email.notification.content.floor.space.design", objects));
-        subjectMap.put(DesignStatus.Brand_Master_Published, commonUtil.getText("email.notification.content.floor.brand.master", objects));
-        subjectMap.put(DesignStatus.Brand_Design_published, commonUtil.getText("email.notification.content.floor.brand.design", objects));
+        subjectMap.put(DesignStatus.Design_Published, commonUtil.getText("email.notification.content.floor.design", objects));
+        subjectMap.put(DesignStatus.Design_Accepted, commonUtil.getText("email.notification.content.floor.design.accepted", objects));
+        subjectMap.put(DesignStatus.Design_Rejected, commonUtil.getText("email.notification.content.floor.design.rejected", objects));
+        //subjectMap.put(DesignStatus.Brand_Master_Published, commonUtil.getText("email.notification.content.floor.brand.master", objects));
+        //subjectMap.put(DesignStatus.Brand_Design_published, commonUtil.getText("email.notification.content.floor.brand.design", objects));
         //subjectMap.put(DesignStatus.Enrichment_Uploaded, commonUtil.getText("email.notification.content.floor.enrich", objects));
         return subjectMap.get(designStatus);
     }

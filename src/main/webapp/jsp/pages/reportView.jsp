@@ -63,37 +63,30 @@
                                    title="<fmt:message key="label.Publish.Master"/>"><fmt:message
                                         key="label.Publish.Master"/></a>
                             </c:when>
-                            <c:when test="${designStatus eq 'Brand_Master_Uploaded'}">
-                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Brand_Master_Published&target=report"/>"
+                            <c:when test="${designStatus eq 'Design_Published'}">
+                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Design_Accepted&target=report"/>"
                                    class="button"
-                                   title="<fmt:message key="label.Publish.Brand.Master"/>"><fmt:message
-                                        key="label.Publish.Brand.Master"/></a>
+                                   title="<fmt:message key="label.Accept.Design"/>"><fmt:message
+                                        key="label.Accept.Design"/></a>
+
+                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Design_Rejected&target=report"/>"
+                                   class="button"
+                                   title="<fmt:message key="label.Reject.Design"/>"><fmt:message
+                                        key="label.Reject.Design"/></a>
                             </c:when>
                         </c:choose>
                     </security:authorize>
                     <security:authorize access="!hasRole('ROLE_SPACE_PLANNER')">
                         <c:choose>
-                            <c:when test="${designStatus eq 'Space_Design_Uploaded'}">
-                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Space_Design_Published&target=report"/>"
+                            <c:when test="${designStatus eq 'Design_Uploaded'}">
+                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Design_Published&target=report"/>"
                                    class="button"
-                                   title="<fmt:message key="label.Publish.Space.Design"/>"><fmt:message
-                                        key="label.Publish.Space.Design"/></a>
-                                <%--<a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Space_Design_Rejected"/>"
-                              class="button"
-                              title="<fmt:message key="label.Reject.Space.Design"/>"><fmt:message key="label.Reject.Space.Design"/></a>--%>
-                            </c:when>
-                            <c:when test="${designStatus eq 'Brand_Design_Uploaded'}">
-                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Brand_Design_published&target=report"/>"
-                                   class="button"
-                                   title="<fmt:message key="label.Publish.Brand.Design"/>"><fmt:message
-                                        key="label.Publish.Brand.Design"/></a>
-                                <%--<a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Brand_Design_Rejected"/>"
-                              class="button"
-                              title="<fmt:message key="label.Reject.Brand.Design"/>"><fmt:message key="label.Reject.Brand.Design"/></a>--%>
+                                   title="<fmt:message key="label.Publish.Design"/>"><fmt:message
+                                        key="label.Publish.Design"/></a>
                             </c:when>
                         </c:choose>
                     </security:authorize>
-                    <c:if test="${designStatus eq 'Brand_Design_published'}">
+                    <c:if test="${designStatus eq 'Design_Accepted'}">
                         <security:authorize access="hasRole('ROLE_ADMIN')">
                             <a href="<c:url value="/comm/floor/publish.html?floorId=${floorId}&type=Published&target=report"/>"
                                class="button" title="<fmt:message key="label.Publish.To.SAP"/>"><fmt:message

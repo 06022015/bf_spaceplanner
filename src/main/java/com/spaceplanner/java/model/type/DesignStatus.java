@@ -9,10 +9,11 @@ package com.spaceplanner.java.model.type;
  */
 public enum DesignStatus {
 
-   Master_Created, Master_Published, Space_Design_Uploaded,  Space_Design_Published,
+   /*Master_Created, Master_Published, Space_Design_Uploaded,  Space_Design_Published,
     Brand_Master_Uploaded, Brand_Master_Published, Brand_Design_Uploaded, Brand_Design_published,
-   /* Enrichment_Uploaded,*/ Published,CICO, BIBO, Archived,;
+   *//* Enrichment_Uploaded,*//* Published,CICO, BIBO, Archived;*/
 
+    Master_Created, Master_Published, Design_Uploaded, Design_Published, Design_Accepted, Design_Rejected, Published;
 
     private int index;
 

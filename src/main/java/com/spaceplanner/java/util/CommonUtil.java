@@ -25,9 +25,6 @@ public class CommonUtil {
     @Autowired
     private MessageSource messageSource;
 
-    @Autowired
-    private Properties properties;
-
     private MessageSourceAccessor messageSourceAccessor=null;
 
     public static Object getBean(String beanName) {

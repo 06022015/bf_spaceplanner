@@ -74,7 +74,7 @@
                         <td>${floor.noOfLocation}</td>
                         <td>${floor.designArea}</td>
                         <c:choose>
-                            <c:when test="${floor.designStatus eq 'Space_Design_Uploaded' &&  (floor.retailArea - floor.designArea) ne 0}">
+                            <c:when test="${floor.designStatus eq 'Design_Uploaded' &&  (floor.retailArea - floor.designArea) ne 0}">
                                 <td class="mismatch">${floor.retailArea - floor.designArea}</td>
                             </c:when>
                             <c:otherwise>
@@ -96,33 +96,14 @@
                                                    class="icon publish border_right"
                                                    title="<fmt:message key="label.Publish.Master"/>"></a>
                                             </c:when>
-                                            <c:when test="${floor.designStatus eq 'Space_Design_Uploaded'}">
-                                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floor.id}&type=Space_Design_Published"/>"
+                                            <c:when test="${floor.designStatus eq 'Design_Published'}">
+                                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floor.id}&type=Design_Accepted"/>"
                                                    class="icon publish border_right"
-                                                   title="<fmt:message key="label.Publish.Space.Design"/>"></a>
-                                                <%-- <a href="<c:url value="/comm/floor/publish.html?floorId=${floor.id}&type=Space_Design_Rejected"/>"
-                                               class="icon publish border_right"
-                                               title="<fmt:message key="label.Reject.Space.Design"/>"></a>--%>
-                                            </c:when>
-                                            <c:when test="${floor.designStatus eq 'Brand_Master_Uploaded'}">
-                                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floor.id}&type=Brand_Master_Published"/>"
+                                                   title="<fmt:message key="label.Accept.Design"/>"></a>
+
+                                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floor.id}&type=Design_Rejected"/>"
                                                    class="icon publish border_right"
-                                                   title="<fmt:message key="label.Publish.Brand.Master"/>"></a>
-                                            </c:when>
-                                            <c:when test="${floor.designStatus eq 'Brand_Design_Uploaded'}">
-                                                <a href="<c:url value="/comm/floor/publish.html?floorId=${floor.id}&type=Brand_Design_published"/>"
-                                                   class="icon publish border_right"
-                                                   title="<fmt:message key="label.Publish.Brand.Design"/>"></a>
-                                                <%--<a href="<c:url value="/comm/floor/publish.html?floorId=${floor.id}&type=Brand_Design_Rejected"/>"
-                                                   class="icon publish border_right"
-                                                   title="<fmt:message key="label.Reject.Brand.Design"/>"></a>--%>
-                                            </c:when>
-                                            <c:when test="${floor.designStatus eq 'Brand_Design_published'}">
-                                                <security:authorize access="hasRole('ROLE_ADMIN')">
-                                                    <a href="<c:url value="/comm/floor/publish.html?floorId=${floor.id}&type=Published"/>"
-                                                       class="icon publish border_right"
-                                                       title="<fmt:message key="label.Publish.To.SAP"/>"></a>
-                                                </security:authorize>
+                                                   title="<fmt:message key="label.Reject.Design"/>"></a>
                                             </c:when>
                                         </c:choose>
                                     </security:authorize>

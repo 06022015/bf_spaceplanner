@@ -23,14 +23,14 @@ public class FloorDesignDetailsEntity extends BaseEntity{
     private CategoryDivision categoryDivision;
     private String category;
     private String designRunningFtWall;
-    private String sisDetails;
+    /*private String sisDetails;*/
     private String locationCode;
     private String designBrandName;
     /*private String designBrandCode;*/
     private Double designArea;
     /*private String masterBrandName;
     private String masterBrandCode;*/
-    private String MG;
+    /*private String MG;
     private String PSFPD;
     private String sales;
     private String GMV;
@@ -39,7 +39,7 @@ public class FloorDesignDetailsEntity extends BaseEntity{
     private String GMROF;
     private Double securityDeposit;
     private Double sdAmount;
-    private String remarks;
+    private String remarks;*/
     private FloorEntity floor;
     private boolean valid=true;
     private BrandEntity brand;
@@ -91,13 +91,13 @@ public class FloorDesignDetailsEntity extends BaseEntity{
         this.designRunningFtWall = designRunningFtWall;
     }
 
-    public String getSisDetails() {
+    /*public String getSisDetails() {
         return sisDetails;
     }
 
     public void setSisDetails(String sisDetails) {
         this.sisDetails = sisDetails;
-    }
+    }*/
 
     public String getLocationCode() {
         return locationCode;
@@ -147,7 +147,7 @@ public class FloorDesignDetailsEntity extends BaseEntity{
         this.masterBrandCode = masterBrandCode;
     }*/
 
-    public String getMG() {
+    /*public String getMG() {
         return MG;
     }
 
@@ -225,7 +225,7 @@ public class FloorDesignDetailsEntity extends BaseEntity{
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
-    }
+    }*/
 
 
     @ManyToOne()
@@ -267,11 +267,13 @@ public class FloorDesignDetailsEntity extends BaseEntity{
 
     @Transient
     public boolean isValid() {
-        if(getFloor().getDesignStatus().equals(DesignStatus.Brand_Design_Uploaded)){
+        if(getFloor().getDesignStatus().equals(DesignStatus.Design_Uploaded)
+                || getFloor().getDesignStatus().equals(DesignStatus.Design_Rejected)){
             this.valid = null==getBrand() && (null==getDesignBrandName() || "".equals(getDesignBrandName()));
             if(!this.valid){
                 this.valid=null!=getBrand() && null!=getDesignBrandName() && !"".equals(getDesignBrandName())
-                        && getDesignBrandName().equals(getBrand().getName());
+                        && getDesignBrandName().replace("\\s","")
+                        .equalsIgnoreCase(getBrand().getName().replace("\\s",""));
             }
         }
         return valid;

@@ -2,10 +2,7 @@ package com.spaceplanner.java.dxf;
 
 import com.spaceplanner.java.dto.DesignDetail;
 import com.spaceplanner.java.exception.LayerNotFoundException;
-import org.kabeja.dxf.DXFDocument;
-import org.kabeja.dxf.DXFLWPolyline;
-import org.kabeja.dxf.DXFLayer;
-import org.kabeja.dxf.DXFMText;
+import org.kabeja.dxf.*;
 import org.kabeja.parser.ParseException;
 import org.kabeja.parser.Parser;
 import org.kabeja.parser.ParserBuilder;
@@ -28,20 +25,22 @@ public class DesignParserExt implements DesignApi {
     private Map<String,List<DesignDetail>> catAreaMap = new HashMap<String, List<DesignDetail>>();
     private boolean readBrand =false;
     private boolean readLocation =false;
+    private DesignProperty designProperty;
 
-    public DesignParserExt(InputStream inputStream, boolean readBrand, boolean readLocation) throws ParseException {
+    public DesignParserExt(InputStream inputStream, boolean readBrand, boolean readLocation, DesignProperty designProperty) throws ParseException {
         Parser parser = ParserBuilder.createDefaultParser();
         parser.parse(inputStream, org.kabeja.parser.DXFParser.DEFAULT_ENCODING);
-        init(parser, readBrand, readLocation);
+        init(parser, readBrand, readLocation, designProperty);
     }
 
-    public DesignParserExt(String filePath, boolean readBrand, boolean readLocation) throws ParseException {
+    public DesignParserExt(String filePath, boolean readBrand, boolean readLocation, DesignProperty designProperty) throws ParseException {
         Parser parser = ParserBuilder.createDefaultParser();
         parser.parse(filePath, org.kabeja.parser.DXFParser.DEFAULT_ENCODING);
-        init(parser, readBrand, readLocation);
+        init(parser, readBrand, readLocation, designProperty);
     }
 
-    private void init(Parser parser, boolean readBrand, boolean readLocation){
+    private void init(Parser parser, boolean readBrand, boolean readLocation, DesignProperty designProperty){
+        this.designProperty = designProperty;
         this.readBrand = readBrand;
         this.readLocation = readLocation;
         this.dxfDocument = parser.getDocument();
@@ -61,8 +60,8 @@ public class DesignParserExt implements DesignApi {
     }
 
     private void processDXF(){
-        List<DesignPolyLine> catLines = getLineLayer(CATEGORY_LINE);
-        List<DesignMText> catTexts = getDesignMText(CATEGORY_NAME, TextType.CAT_NAME);
+        List<DesignPolyLine> catLines = getLineLayer(designProperty.getCategoryLine());
+        List<DesignMText> catTexts = getDesignMText(designProperty.getCategoryName(), TextType.CAT_NAME);
         List<DesignPolyLine> brandLines = getBrandLines();
         for(DesignPolyLine catLine : catLines){
             for(DesignMText cat : catTexts){
@@ -117,7 +116,7 @@ public class DesignParserExt implements DesignApi {
     }
 
     private List<DesignPolyLine> getBrandLines(){
-        List<DesignPolyLine> brandLines = getLineLayer(BRAND_LINE);
+        List<DesignPolyLine> brandLines = getLineLayer(designProperty.getBrandLine());
         List<DesignMText> brandAreas = getBrandAreas();
         List<DesignMText> brandNames = getBrandNames();
         List<DesignMText> locations = getLocations();
@@ -150,7 +149,7 @@ public class DesignParserExt implements DesignApi {
     private List<DesignMText> getBrandNames() {
         List<DesignMText> brandNames;
         try{
-            brandNames = getDesignMText(BRAND_NAME, TextType.BRAND_NAME);
+            brandNames = getDesignMText(designProperty.getBrandName(), TextType.BRAND_NAME);
         }catch (LayerNotFoundException le){
             if(readBrand)
                 throw le;
@@ -163,7 +162,7 @@ public class DesignParserExt implements DesignApi {
     private List<DesignMText> getLocations() {
         List<DesignMText> locations;
         try{
-            locations = getDesignMText(LOCATION, TextType.LOCATION);
+            locations = getDesignMText(designProperty.getLocationCode(), TextType.LOCATION);
         }catch (LayerNotFoundException le){
             if(readLocation)
                 throw le;
@@ -174,12 +173,12 @@ public class DesignParserExt implements DesignApi {
     }
 
     private List<DesignMText> getBrandAreas() {
-        return getDesignMText(BRAND_AREA, TextType.BRAND_AREA);
+        return getDesignMText(designProperty.getBrandArea(), TextType.BRAND_AREA);
     }
 
     private List<DesignPolyLine> getLineLayer(String layerName) {
         DXFLayer layer = getDXFLayer(layerName);
-        List<DXFLWPolyline> lwPolyLineList = layer.getDXFEntities(LWPOLYLINE);
+        List<DXFLWPolyline> lwPolyLineList = layer.getDXFEntities(designProperty.getlWPolyLine());
         List<DesignPolyLine> designPolyLineList = new ArrayList<DesignPolyLine>();
         for (DXFLWPolyline dxflwPolyline : lwPolyLineList) {
             DesignPolyLine designPolyLine = new DesignPolyLine(dxflwPolyline);
@@ -191,14 +190,23 @@ public class DesignParserExt implements DesignApi {
 
     private List<DesignMText> getDesignMText(String layerName, TextType textType){
         DXFLayer layer = getDXFLayer(layerName);
-        List<DXFMText> mtextBList = layer.getDXFEntities(MTEXT);
+        List<DXFText> mtextBList = getDesignText(layer);
         List<DesignMText> designMTextList = new ArrayList<DesignMText>();
-        for (DXFMText dxfmText : mtextBList) {
-            DesignMText designMText = new DesignMText(dxfmText,textType);
+        for (DXFText dxfText : mtextBList) {
+            DesignMText designMText = new DesignMText(dxfText,textType);
             if (designMText.isValid())
                 designMTextList.add(designMText);
         }
         return designMTextList;
+    }
+
+    private List<DXFText> getDesignText(DXFLayer layer){
+        List<DXFText> textList = new ArrayList<DXFText>();
+        if(null != layer.getDXFEntities(designProperty.getmText()))
+            textList.addAll(layer.getDXFEntities(designProperty.getmText()));
+        if(null != layer.getDXFEntities(designProperty.getText()))
+            textList.addAll(layer.getDXFEntities(designProperty.getText()));
+        return textList;
     }
 
     private DXFLayer getDXFLayer(String layerName){
@@ -226,7 +234,7 @@ public class DesignParserExt implements DesignApi {
 
     public static void main(String args[]) throws ParseException {
         //DesignParserExt designParser = new DesignParserExt("/Users/ashqures/project/home-pc/space_planner/prod_issue/SAHARA-GANJ-FF-27-07-16_as.dxf", false, true);
-        DesignParserExt designParser = new DesignParserExt("/Users/ashqures/project/home-pc/space_planner/bf/doc/1.dxf", true, false);
+        DesignParserExt designParser = new DesignParserExt("/Users/ashqures/project/home-pc/space_planner/bf/doc/1.dxf", true, false, new DesignProperty());
         List<DesignDetail> designDetails = designParser.getDesignDetails();
         for(DesignDetail designDetail : designDetails)
             System.out.println(designDetail);

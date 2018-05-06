@@ -18,6 +18,11 @@ public class StringUtil {
     public static String trim(String text){
         return null!=text?text.trim():null;
     }
+
+    public static String removeSpace(String text){
+        text = text.replace("\\s","");
+        return text.trim();
+    }
     
     public static String toString(Object text){
         return null!=text?text.toString().trim():null;

@@ -53,7 +53,7 @@ public interface CommonBL {
 
     void save(DesignUploadForm designUploadForm, SpacePlannerResponseStatus status) throws IOException, ParseException;
 
-    void save(FloorUploadForm enrichUploadForm, SpacePlannerResponseStatus status) throws IOException;
+    //void save(FloorUploadForm enrichUploadForm, SpacePlannerResponseStatus status) throws IOException;
 
     List<FloorDesignDetailsEntity> getFloorDesignDetails(Long floorId);
 

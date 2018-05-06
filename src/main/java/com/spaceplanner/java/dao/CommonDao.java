@@ -5,6 +5,7 @@ import com.spaceplanner.java.model.FloorEntity;
 import com.spaceplanner.java.model.StoreEntity;
 import com.spaceplanner.java.model.master.BrandEntity;
 import com.spaceplanner.java.model.master.CategoryDivision;
+import com.spaceplanner.java.model.type.DesignStatus;
 import com.spaceplanner.java.model.type.Status;
 
 import java.util.List;
@@ -41,9 +42,14 @@ public interface CommonDao extends BaseDao{
 
     void deleteFloorDetails(Long floorId, int version);
 
+    void deleteFloorDetails(Long floorId, int version, DesignStatus designStatus);
+
     StoreEntity getStoreByName(String storeName);
 
     BrandEntity getBrandByNameAndCode(String code, String name);
+
+
+    BrandEntity getBrandByCode(String code);
 
      List<BrandEntity> getBrands();
 

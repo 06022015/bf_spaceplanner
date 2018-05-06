@@ -2,6 +2,7 @@ package com.spaceplanner.java.dxf;
 
 import org.kabeja.dxf.DXFMText;
 import org.kabeja.dxf.DXFPoint;
+import org.kabeja.dxf.DXFText;
 import org.kabeja.dxf.helpers.StyledTextParagraph;
 
 import java.util.Comparator;
@@ -16,6 +17,9 @@ import java.util.Iterator;
  */
 public class DesignMText implements Comparator<DesignMText> {
 
+    private final static String SQUARE_FEET = "(sft|sqft)";
+    private final static String AREA_SQUARE_FEET_REGEX = "(?i).*"+SQUARE_FEET;
+
     private String id;
     private String text="";
     private DXFPoint dxfPoint;
@@ -24,23 +28,23 @@ public class DesignMText implements Comparator<DesignMText> {
     private boolean hasBrandLine=false;
     private TextType textType;
 
-    public DesignMText(DXFMText dxfmText, TextType textType){
-        this.id = dxfmText.getID();
-        this.dxfPoint=new DXFPoint(dxfmText.getInsertPoint());
-        Iterator textIterator = dxfmText.getTextDocument().getStyledParagraphIterator();
+    public DesignMText(DXFText dxfText, TextType textType){
+        this.id = dxfText.getID();
+        this.dxfPoint=new DXFPoint(dxfText.getInsertPoint());
+        Iterator textIterator = dxfText.getTextDocument().getStyledParagraphIterator();
         this.textType = textType;
         while(textIterator.hasNext()){
             StyledTextParagraph styledTextParagraph = (StyledTextParagraph)textIterator.next();
             if(null!=styledTextParagraph.getText() && !"".equals(styledTextParagraph.getText())){
                 //this.text = text+styledTextParagraph.getText().trim();
-                if(isArea() &&  styledTextParagraph.getText().toLowerCase().contains("sft")){
+                if(isArea() &&  styledTextParagraph.getText().toLowerCase().matches(AREA_SQUARE_FEET_REGEX)){
                     try{
                         this.text = text+styledTextParagraph.getText().trim();
-                        this.textAsArea = Double.parseDouble(styledTextParagraph.getText().replaceAll("(?i)sft","").trim());
+                        this.textAsArea = Double.parseDouble(styledTextParagraph.getText().replaceAll("(?i)"+SQUARE_FEET,"").trim());
                     }catch (NumberFormatException ne){
                         System.out.println("Unable to parse area:- "+ styledTextParagraph.getText());
                     }
-                }else if(!isArea() && !styledTextParagraph.getText().toLowerCase().contains("sft")){
+                }else if(!isArea()){
                     this.text = text+styledTextParagraph.getText().trim();
                 }
             }

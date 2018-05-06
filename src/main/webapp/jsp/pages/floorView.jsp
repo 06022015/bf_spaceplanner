@@ -15,7 +15,7 @@
     <table id="floor_view" class="display" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <c:set var="baseCount" value="${not empty readLocation && readLocation eq true ?5:4}"/>
+                <c:set var="baseCount" value="${not empty readLocation && readLocation eq true ?4:3}"/>
                 <c:set var="extraCol" value="${not empty brandId && empty version ?3:2}"/>
                 <c:choose>
                     <c:when test="${not empty brandId}">
@@ -27,7 +27,7 @@
                 </c:choose>
                 <th colspan="2"><fmt:message key="label.Master.Data"/></th>
                 <th colspan="1"><fmt:message key="label.Design.Data"/></th>
-                <th colspan="9"></th>
+                <%--<th colspan="9"></th>--%>
             </tr>
         <tr>
             <c:if test="${not empty brandId}">
@@ -39,7 +39,7 @@
             </c:if>
             <th><fmt:message key="label.Division"/></th>
             <th><fmt:message key="label.Category"/></th>
-            <th><fmt:message key="label.SIS.Details"/></th>
+            <%--<th><fmt:message key="label.SIS.Details"/></th>--%>
             <c:if test="${not empty readLocation && readLocation eq true}">
                 <th title="<fmt:message key="label.Location"/>"><fmt:message key="label.Location.short"/></th>
             </c:if>
@@ -48,7 +48,7 @@
             <th><fmt:message key="label.Brand.Name"/></th>
             <%--<th><fmt:message key="label.Brand.Code"/></th>--%>
             <th><fmt:message key="label.Brand.Name"/></th>
-            <th><fmt:message key="label.MG"/></th>
+            <%--<th><fmt:message key="label.MG"/></th>
             <th><fmt:message key="label.PSFPD"/></th>
             <th><fmt:message key="label.Sales"/></th>
             <th><fmt:message key="label.GMV"/></th>
@@ -56,7 +56,7 @@
             <th title="<fmt:message key="label.Vistex.Margin"/>"><fmt:message key="label.Vistex.Margin.short"/></th>
             <th><fmt:message key="label.GMROF"/></th>
             <th><fmt:message key="label.Security.Deposit"/></th>
-            <th><fmt:message key="label.SD.Amount"/></th>
+            <th><fmt:message key="label.SD.Amount"/></th>--%>
         </tr>
         </thead>
         <tbody>
@@ -76,7 +76,7 @@
                         </c:if>
                         <td>${floorDetail.categoryDivision.division}</td>
                         <td>${floorDetail.category}</td>
-                        <td>${floorDetail.sisDetails}</td>
+                        <%--<td>${floorDetail.sisDetails}</td>--%>
                         <c:if test="${not empty readLocation && readLocation eq true}">
                             <td>${floorDetail.locationCode}</td>
                         </c:if>
@@ -93,7 +93,7 @@
                                 <td>${floorDetail.designBrandName}</td>
                             </c:otherwise>
                         </c:choose>
-                        <td>${floorDetail.MG}</td>
+                        <%--<td>${floorDetail.MG}</td>
                         <td>${floorDetail.PSFPD}</td>
                         <td>${floorDetail.sales}</td>
                         <td>${floorDetail.GMV}</td>
@@ -101,7 +101,7 @@
                         <td>${floorDetail.vistexMargin}</td>
                         <td>${floorDetail.GMROF}</td>
                         <td>${floorDetail.securityDeposit}</td>
-                        <td>${floorDetail.sdAmount}</td>
+                        <td>${floorDetail.sdAmount}</td>--%>
                     </tr>
                 </c:forEach>
             </c:when>

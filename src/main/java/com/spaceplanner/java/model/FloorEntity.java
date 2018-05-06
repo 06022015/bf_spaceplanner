@@ -219,7 +219,7 @@ public class FloorEntity extends BaseEntity{
         floorEntity.setStatus(Status.ACTIVE);
         floorEntity.setStore(getStore());
         floorEntity.setVersion(getVersion() + 1);
-        floorEntity.setDesignStatus(DesignStatus.Brand_Master_Published);
+        floorEntity.setDesignStatus(getDesignStatus());
     }
 
 

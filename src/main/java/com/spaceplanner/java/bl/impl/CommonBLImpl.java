@@ -62,10 +62,13 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
     private UserDao userDao;
 
     @Autowired
+    private DesignProperty designProperty;
+
+    /*@Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private VelocityEngine velocityEngine;
+    private VelocityEngine velocityEngine;*/
 
     @Autowired
     private SpacePlannerBeans spacePlannerBeans;
@@ -222,15 +225,11 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             logger.error("DXF file size 0");
             return;
         }
-        if (floorEntity.getDesignStatus().equals(DesignStatus.Master_Published) || floorEntity.getDesignStatus().equals(DesignStatus.Space_Design_Uploaded)) {
-            processSpaceDesign(floorEntity, designUploadForm.getDesignDXFFile(), status);
-            if(status.hasError()){
-                return;
-            }
-            floorEntity.setDesignCreatedBy(designUploadForm.getUserEntity());
-        } else {
-            processBrandDesign(floorEntity, designUploadForm.getDesignDXFFile());
+        processSpaceDesign(floorEntity, designUploadForm.getDesignDXFFile(), status);
+        if(status.hasError()){
+            return;
         }
+        floorEntity.setDesignCreatedBy(designUploadForm.getUserEntity());
         String fileNme = getFIleName(floorEntity, FILE_TYPE_DXF);
         String filePathForDXF = SpacePlannerUtil.getFilePath(CommonUtil.getProperty("file.location"), floorEntity.getStore().getId(), fileNme);
         FileUtil.write(filePathForDXF, designUploadForm.getDesignDXFFile().getInputStream());
@@ -240,19 +239,18 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
     private List<DesignStatus> getValidDesignStatusForDesignUpload() {
         List<DesignStatus> designStatusList = new ArrayList<DesignStatus>();
         designStatusList.add(DesignStatus.Master_Published);
-        designStatusList.add(DesignStatus.Space_Design_Uploaded);
-        designStatusList.add(DesignStatus.Brand_Master_Published);
-        designStatusList.add(DesignStatus.Brand_Design_Uploaded);
+        designStatusList.add(DesignStatus.Design_Uploaded);
+        designStatusList.add(DesignStatus.Design_Rejected);
         return designStatusList;
     }
 
     private void processSpaceDesign(FloorEntity floorEntity, MultipartFile designDXFFile, SpacePlannerResponseStatus status) throws IOException, ParseException {
         logger.info("Processing space design...");
-        //boolean readLocation = CommonUtil.getProperty("dxf.design.read.location").equalsIgnoreCase("true");
-        DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream(), false, readLocation);
+        DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream(), true, readLocation, designProperty);
         List<DesignDetail> designDetails = designApi.getDesignDetails();
         List<FloorDesignDetailsEntity> floorDesignDetailList = new ArrayList<FloorDesignDetailsEntity>();
         Map<String, CategoryDivision> categoryDivisionMap = commonDao.getCategoryDivision();
+        Map<String, BrandEntity> brandMap = convertBrandListIntoMap(commonDao.getBrands());
         double designRetailArea = 0.00;
         int count = 1;
         for (DesignDetail designDetail : designDetails) {
@@ -263,6 +261,10 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             else
                 floorDesignDetail.setLocationCode(count+"");
             floorDesignDetail.setDesignArea(designDetail.getArea());
+            if(StringUtil.isNotNullOrEmpty(designDetail.getBrand())){
+                floorDesignDetail.setDesignBrandName(designDetail.getBrand());
+                floorDesignDetail.setBrand(brandMap.get(StringUtil.removeSpace(designDetail.getBrand()).toLowerCase()));
+            }
             boolean isNullOrInvalidCategory=false;
             if(StringUtil.isNotNullOrEmpty(designDetail.getCategory())){
                 String categoryName =  designDetail.getCategory().replaceAll("\\s","");
@@ -284,17 +286,17 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             floorDesignDetailList.add(floorDesignDetail);
             count++;
         }
-
-        if (floorEntity.getDesignStatus().equals(DesignStatus.Space_Design_Uploaded)) {
-            commonDao.deleteFloorDetails(floorEntity.getId(), floorEntity.getVersion());
+        if (floorEntity.getDesignStatus().equals(DesignStatus.Design_Uploaded)
+                || floorEntity.getDesignStatus().equals(DesignStatus.Design_Rejected)) {
+            commonDao.deleteFloorDetails(floorEntity.getId(), floorEntity.getVersion(),floorEntity.getDesignStatus());
         }
         commonDao.saveAll(floorDesignDetailList);
         floorEntity.setNoOfLocation(designDetails.size());
-        floorEntity.setDesignStatus(DesignStatus.Space_Design_Uploaded);
+        floorEntity.setDesignStatus(DesignStatus.Design_Uploaded);
         floorEntity.setDesignArea(designRetailArea);
     }
 
-    private void processBrandDesign(FloorEntity floorEntity, MultipartFile designDXFFile) throws IOException, ParseException {
+    /*private void processBrandDesign(FloorEntity floorEntity, MultipartFile designDXFFile) throws IOException, ParseException {
         DesignApi designApi = new DesignParserExt(designDXFFile.getInputStream(), true, false);
         List<FloorDesignDetailsEntity> floorDesignDetailList = commonDao.getFloorDesignDetails(floorEntity.getId());
         Set<DesignDetail> processed = new HashSet<DesignDetail>();
@@ -324,7 +326,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         }
         commonDao.saveAll(floorDesignDetailList);
         floorEntity.setDesignStatus(DesignStatus.Brand_Design_Uploaded);
-    }
+    }*/
 
     private void processDesignPDF(FloorEntity floorEntity, DesignUploadForm designUploadForm) throws IOException {
         if (null != designUploadForm.getDesignPDFFile() && designUploadForm.getDesignPDFFile().getSize() > 0) {
@@ -338,7 +340,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
     private Map<String, BrandEntity> convertBrandListIntoMap(List<BrandEntity> brandList) {
         Map<String, BrandEntity> brandMap = new HashMap<String, BrandEntity>();
         for (BrandEntity brandEntity : brandList) {
-            brandMap.put(brandEntity.getName().trim(), brandEntity);
+            brandMap.put(StringUtil.removeSpace(brandEntity.getName()).toLowerCase(), brandEntity);
         }
         return brandMap;
     }
@@ -349,7 +351,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
     }
 
 
-    public void save(FloorUploadForm floorUploadForm, SpacePlannerResponseStatus status) {
+    /*public void save(FloorUploadForm floorUploadForm, SpacePlannerResponseStatus status) {
         validatorUtil.validate(floorUploadForm, status);
         if (status.hasError()) {
             saveErrorMessage(status, HttpStatus.BAD_REQUEST.value());
@@ -360,10 +362,10 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         if (floor.getDesignStatus().equals(DesignStatus.Space_Design_Published)
                 || floor.getDesignStatus().equals(DesignStatus.Brand_Master_Uploaded)) {
             designStatus = DesignStatus.Brand_Master_Uploaded;
-        } /*else if (floor.getDesignStatus().equals(DesignStatus.Brand_Design_published)
+        } *//*else if (floor.getDesignStatus().equals(DesignStatus.Brand_Design_published)
                 || floor.getDesignStatus().equals(DesignStatus.Enrichment_Uploaded)) {
             designStatus = DesignStatus.Enrichment_Uploaded;
-        }*/ else {
+        }*//* else {
             status.setMessage(commonUtil.getText("error.operation.no.allowed",floor.getFloorNumber(), status.getLocale()));
             saveErrorMessage(status, HttpStatus.NOT_ACCEPTABLE.value());
             return;
@@ -379,9 +381,9 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
                 status.setMessage(commonUtil.getText("success.excel.uploaded", floor.getFloorNumber(), status.getLocale()));
                 saveSuccessMessage(status);
                 return;
-            }/* else {
+            }*//* else {
                 status.setError(commonUtil.getText("error.failed.to.process.brand.details", status.getLocale()));
-            }*/
+            }*//*
         } catch (NumberFormatException e) {
             status.setError(commonUtil.getText("error.file.have.bad.data", status.getLocale()));
         } catch (IOException e) {
@@ -395,9 +397,9 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             status.setError(commonUtil.getText("error.file.have.bad.data", status.getLocale()));
         }
         saveErrorMessage(status, HttpStatus.BAD_REQUEST.value());
-    }
+    }*/
 
-    private void processMaster(MultipartFile multipartFile, Long floorId, SpacePlannerResponseStatus status) throws IOException, NumberFormatException {
+    /*private void processMaster(MultipartFile multipartFile, Long floorId, SpacePlannerResponseStatus status) throws IOException, NumberFormatException {
         List<FloorDesignDetailsEntity> floorDesignDetails = commonDao.getFloorDesignDetails(floorId);
         //Map<String, List<SpaceMasterDTO>> catAreaMap = ExcelUtil.readAsCategoryArea(multipartFile.getInputStream());
         Map<String, SpaceMasterDTO> spaceMasterMap = ExcelUtil.read(multipartFile.getInputStream());
@@ -407,7 +409,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         //Set<SpaceMasterDTO> processed = new HashSet<SpaceMasterDTO>();
         for (FloorDesignDetailsEntity floorDesignDetail : floorDesignDetails) {
             SpaceMasterDTO spaceMasterDTO = spaceMasterMap.get(floorDesignDetail.getLocationCode());
-            /*SpaceMasterDTO spaceMasterDTO = null;//spaceMasterMap.get(floorDesignDetail.getLocationCode());
+            *//*SpaceMasterDTO spaceMasterDTO = null;//spaceMasterMap.get(floorDesignDetail.getLocationCode());
             List<SpaceMasterDTO> catSpaceMasterDTOS = catAreaMap.get(floorDesignDetail.getCategory()+"-"+floorDesignDetail.getDesignArea());
             if(null != catSpaceMasterDTOS){
                 for(SpaceMasterDTO spaceMaster :  catSpaceMasterDTOS){
@@ -419,7 +421,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
                         processed.add(spaceMaster);
                     }
                 }
-            }*/
+            }*//*
             if (null != spaceMasterDTO) {
                 if((StringUtil.isNotNullOrEmpty(spaceMasterDTO.getBrandCode()))
                         ||(StringUtil.isNotNullOrEmpty(spaceMasterDTO.getBrandName()))){
@@ -439,9 +441,9 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         }else{
             status.setError(commonUtil.getText("error.invalid.brand.code.or.brand.name", error, status.getLocale()));
         }
-    }
+    }*/
 
-    private void updateFloorDesign(FloorDesignDetailsEntity floorDesignDetail, BrandEntity brandEntity, SpaceMasterDTO spaceMasterDTO){
+    /*private void updateFloorDesign(FloorDesignDetailsEntity floorDesignDetail, BrandEntity brandEntity, SpaceMasterDTO spaceMasterDTO){
         floorDesignDetail.setBrand(brandEntity);
         floorDesignDetail.setSisDetails(spaceMasterDTO.getSisDetails());
         floorDesignDetail.setMG(spaceMasterDTO.getMG());
@@ -453,7 +455,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         floorDesignDetail.setGMROF(spaceMasterDTO.getGMROF());
         floorDesignDetail.setSecurityDeposit(spaceMasterDTO.getSecurityDeposit());
         floorDesignDetail.setSdAmount(spaceMasterDTO.getSdAmount());
-    }
+    }*/
 
     public List<FloorDesignDetailsEntity> getFloorDesignDetails(Long floorId) {
         return commonDao.getFloorDesignDetails(floorId);
@@ -487,10 +489,11 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         boolean isAuthorized = false;
         if(user.isUserInRole(Role.ROLE_ADMIN)){
            isAuthorized=true;
-        }else if((designStatus.equals(DesignStatus.Master_Published)||designStatus.equals(DesignStatus.Brand_Master_Published))
+        }else if((designStatus.equals(DesignStatus.Master_Published)||designStatus.equals(DesignStatus.Design_Accepted)
+                ||designStatus.equals(DesignStatus.Design_Rejected))
                 && user.isUserInRole(Role.ROLE_SPACE_PLANNER)){
           isAuthorized=true;
-        } else if((designStatus.equals(DesignStatus.Space_Design_Published)|| designStatus.equals(DesignStatus.Brand_Design_published))
+        } else if((designStatus.equals(DesignStatus.Design_Published)|| designStatus.equals(DesignStatus.Design_Uploaded))
                 && user.isUserInRole(Role.ROLE_DESIGNER)){
             isAuthorized=true;
         }
@@ -508,26 +511,22 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
         if (floor.getDesignStatus().equals(DesignStatus.Master_Created)
                 && designStatusType.equals(DesignStatus.Master_Published)) {
                 message = commonUtil.getText("success.publish.master", floor.getFloorNumber());
-        } else if (floor.getDesignStatus().equals(DesignStatus.Space_Design_Uploaded)
-                && designStatusType.equals(DesignStatus.Space_Design_Published)) {
-            if (SpacePlannerUtil.isFloorDesignAreaTolerable(floor.getRetailArea(),floor.getDesignArea())) {
-                message = commonUtil.getText("success.publish.space.design", floor.getFloorNumber());
+        } else if (floor.getDesignStatus().equals(DesignStatus.Design_Uploaded)
+                && designStatusType.equals(DesignStatus.Design_Published)) {
+            if (SpacePlannerUtil.isFloorDesignAreaTolerable(floor.getRetailArea(),floor.getDesignArea())
+                    && commonDao.isValidBrandDesign(floor.getId())) {
+                message = commonUtil.getText("success.publish.design", floor.getFloorNumber());
             } else {
                 isValid = false;
-                message = commonUtil.getText("error.design.area.does.not.match", floor.getFloorNumber());
+                message = commonUtil.getText("error.design.can.not.publish", floor.getFloorNumber());
             }
-        } else if (floor.getDesignStatus().equals(DesignStatus.Brand_Master_Uploaded)
-                && designStatusType.equals(DesignStatus.Brand_Master_Published)) {
-            message = commonUtil.getText("success.publish.brand.master", floor.getFloorNumber());
-        } else if (floor.getDesignStatus().equals(DesignStatus.Brand_Design_Uploaded)
-                && designStatusType.equals(DesignStatus.Brand_Design_published)) {
-            if (commonDao.isValidBrandDesign(floor.getId())) {
-                message = commonUtil.getText("success.publish.brand.design", floor.getFloorNumber());
-            } else {
-                isValid = false;
-                message = commonUtil.getText("error.design.brand.is.not.valid", floor.getFloorNumber());
-            }
-        } else if (floor.getDesignStatus().equals(DesignStatus.Brand_Design_published) && designStatusType.equals(DesignStatus.Published)) {
+        }else if(floor.getDesignStatus().equals(DesignStatus.Design_Published)
+                && designStatusType.equals(DesignStatus.Design_Rejected)){
+            message = commonUtil.getText("success.reject.design", floor.getFloorNumber());
+        }else if(floor.getDesignStatus().equals(DesignStatus.Design_Published)
+                && designStatusType.equals(DesignStatus.Design_Accepted)){
+            message = commonUtil.getText("success.accept.design", floor.getFloorNumber());
+        } else if (floor.getDesignStatus().equals(DesignStatus.Design_Accepted) && designStatusType.equals(DesignStatus.Published)) {
             /*TODO once sap system integrated need uncomment below line and comment other line*/
             //message = commonUtil.getText("success.publish.to.SAP", floor.getFloorNumber());
             isValid = false;
@@ -567,16 +566,16 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
     public void saveBrandMaster(InputStream inputStream) throws IOException {
         try {
             List<SpaceMasterDTO> spaceMasterDTOList = ExcelUtil.readBrandMaster(inputStream);
-            List<BrandEntity> brandEntityList = new ArrayList<BrandEntity>();
             for (SpaceMasterDTO spaceMasterDTO : spaceMasterDTOList) {
                 BrandEntity brandEntity = new BrandEntity();
                 brandEntity.setCode(spaceMasterDTO.getBrandCode());
                 brandEntity.setName(spaceMasterDTO.getBrandName());
-                brandEntityList.add(brandEntity);
+                BrandEntity exist = commonDao.getBrandByCode(brandEntity.getCode());
+                if(null == exist)
+                    commonDao.save(brandEntity);
             }
-            commonDao.saveAll(brandEntityList);
         } catch (IOException e) {
-            logger.error("Failed to process brand master" + e);
+            logger.error("Failed to process brand master " + e);
             throw e;
         }
     }
@@ -624,9 +623,9 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             floorDesignDetailVN.setLocationCode(floorDesignDetailVO.getLocationCode());
             floorDesignDetailVN.setDesignArea(floorDesignDetailVO.getDesignArea());
             floorDesignDetailVN.setCategory(StringUtil.toString(detailsMap.get(COLUMN_CATEGORY)));
-            floorDesignDetailVN.setSisDetails(StringUtil.toString(detailsMap.get(COLUMN_SIS_DETAILS)));
+            /*floorDesignDetailVN.setSisDetails(StringUtil.toString(detailsMap.get(COLUMN_SIS_DETAILS)));*/
             floorDesignDetailVN.setBrand((BrandEntity) detailsMap.get(COLUMN_BRAND));
-            floorDesignDetailVN.setMG(StringUtil.toString(detailsMap.get(COLUMN_MG)));
+            /*floorDesignDetailVN.setMG(StringUtil.toString(detailsMap.get(COLUMN_MG)));
             floorDesignDetailVN.setPSFPD(StringUtil.toString(detailsMap.get(COLUMN_PSFPD)));
             floorDesignDetailVN.setSales(StringUtil.toString(detailsMap.get(COLUMN_SALES)));
             floorDesignDetailVN.setGMV(StringUtil.toString(detailsMap.get(COLUMN_GMV)));
@@ -634,7 +633,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             floorDesignDetailVN.setVistexMargin(StringUtil.toString(detailsMap.get(COLUMN_VISTEX_MARGIN)));
             floorDesignDetailVN.setGMROF(StringUtil.toString(detailsMap.get(COLUMN_GMROF)));
             floorDesignDetailVN.setSecurityDeposit((Double) detailsMap.get(COLUMN_SECURITY_DEPOSIT));
-            floorDesignDetailVN.setSdAmount((Double) detailsMap.get(COLUMN_SD_AMOUNT));
+            floorDesignDetailVN.setSdAmount((Double) detailsMap.get(COLUMN_SD_AMOUNT));*/
             floorDesignDetailVN.setRequested((Boolean) detailsMap.get(COLUMN_IS_REQUEST));
             floorDesignDetailVN.setStartDate(DateUtil.changeFormat((Date) detailsMap.get(COLUMN_START_DATE)));
             floorDesignDetailVN.setCategoryDivision((CategoryDivision)detailsMap.get(COLUMN_DIVISION));
@@ -707,7 +706,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             }
         } else {
             detailsMap.put(COLUMN_BRAND, floorDesignDetailVO.getBrand());
-            detailsMap.put(COLUMN_MG, floorDesignDetailVO.getMG());
+            /*detailsMap.put(COLUMN_MG, floorDesignDetailVO.getMG());
             detailsMap.put(COLUMN_PSFPD, floorDesignDetailVO.getPSFPD());
             detailsMap.put(COLUMN_SALES, floorDesignDetailVO.getSales());
             detailsMap.put(COLUMN_GMV, floorDesignDetailVO.getGMV());
@@ -716,7 +715,7 @@ public class CommonBLImpl extends BaseBL implements CommonBL, Constants {
             detailsMap.put(COLUMN_GMROF, floorDesignDetailVO.getGMROF());
             detailsMap.put(COLUMN_SECURITY_DEPOSIT, floorDesignDetailVO.getSecurityDeposit());
             detailsMap.put(COLUMN_SD_AMOUNT, floorDesignDetailVO.getSdAmount());
-            detailsMap.put(COLUMN_SIS_DETAILS, floorDesignDetailVO.getSisDetails());
+            detailsMap.put(COLUMN_SIS_DETAILS, floorDesignDetailVO.getSisDetails());*/
             detailsMap.put(COLUMN_START_DATE, floorDesignDetailVO.getStartDate());
             detailsMap.put(COLUMN_IS_REQUEST,false);
         }

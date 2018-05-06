@@ -9,10 +9,10 @@
                                  http://www.springframework.org/schema/security/spring-security-3.2.xsd'>
 
     <!--<beans:import resource='applicationContext-resources.xml'/>-->
-    <beans:import resource='dispatcher-servlet.xml'/>
+    <!--<beans:import resource='dispatcher-servlet.xml'/>-->
 
     <!--<security:global-method-security secured-annotations="enabled"/>-->
-    <security:global-method-security pre-post-annotations="enabled"/>
+    <!--<security:global-method-security pre-post-annotations="enabled"/>-->
 
     <security:http auto-config="true">
         <intercept-url pattern="/comm/**/delete*" access="ROLE_ADMIN"/>
@@ -54,4 +54,3 @@
 
     <beans:bean id="webSecurityExpressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler" />
 </beans:beans>
-    <!---->
